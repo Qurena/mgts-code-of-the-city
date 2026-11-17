@@ -238,17 +238,24 @@ def _response_id(spec: dict, row: dict, person: str, period: int | None, idx: in
     col = (spec.get("columns") or {}).get("response_id")
     if col and not is_blank(row.get(col)):
         return str(row[col]).strip()
-    ts = row.get((spec.get("columns") or {}).get("timestamp") or "", "")
-    base = f"{spec['side']}|{norm_key(person)}|{period}|{ts if not is_blank(ts) else idx}"
-    return "imp-" + hashlib.sha1(base.encode()).hexdigest()[:12]
+    # Номер строится из содержимого строки: та же строка при повторном чтении не создаёт дубль,
+    # а исправленная в таблице строка получает новый номер и заменяет прежний ответ (берётся самый поздний).
+    content = json.dumps({k: (None if is_blank(v) else str(v)) for k, v in row.items()}, sort_keys=True, ensure_ascii=False)
+    base = f"{spec['side']}|{norm_key(person)}|{period}|{content}"
+    return "imp-" + hashlib.sha1(base.encode()).hexdigest()[:14]
 
 
-def build_payloads(mapping: dict, base: Path | None = None) -> dict:
-    """Читает все источники и собирает ответы. Ничего не пишет в базу. Возвращает участников, ответы и отчёт для проверки глазами."""
+def _next_id(people: dict) -> int:
+    return max([p["id"] for p in people.values()], default=0) + 1
+
+
+def build_payloads(mapping: dict, base: Path | None = None, known: dict | None = None) -> dict:
+    """Читает все источники и собирает ответы. Ничего не пишет в базу. Возвращает участников, ответы и отчёт для проверки глазами.
+    known — уже существующие в базе участники {ключ: {id, name, mentor}}: их номера не меняются при повторной загрузке."""
     aliases = mapping.get("aliases", {})
     pairs = {norm_key(k): v for k, v in mapping.get("pairs", {}).items()}
     report: dict = {"sources": [], "notes": [], "warnings": [], "skipped": 0}
-    people: dict[str, dict] = {}   # ключ стажёра -> {id, name, mentor}
+    people: dict[str, dict] = {k: dict(v) for k, v in (known or {}).items()}   # ключ стажёра -> {id, name, mentor}
     rows_out: list[dict] = []
     intern_first = sorted(mapping["sources"], key=lambda s: s["side"] != "intern")
 
@@ -281,7 +288,7 @@ def build_payloads(mapping: dict, base: Path | None = None) -> dict:
             if side == "intern":
                 key = norm_key(aliases.get(person, person))
                 if key not in people:
-                    people[key] = {"id": len(people) + 1, "name": aliases.get(person, person), "mentor": ""}
+                    people[key] = {"id": _next_id(people), "name": aliases.get(person, person), "mentor": ""}
                 if ocol and not is_blank(row.get(ocol)) and not people[key]["mentor"]:
                     people[key]["mentor"] = str(row[ocol]).strip()
                 intern_key, mentor_name = key, None
@@ -291,7 +298,7 @@ def build_payloads(mapping: dict, base: Path | None = None) -> dict:
                     intern_key = resolve_name(str(other), {k: v["name"] for k, v in people.items()}, aliases, report["notes"])
                     if intern_key is None:  # стажёр есть только у наставника: добавляем
                         intern_key = norm_key(aliases.get(str(other), str(other)))
-                        people[intern_key] = {"id": len(people) + 1, "name": aliases.get(str(other), str(other)).strip(), "mentor": ""}
+                        people[intern_key] = {"id": _next_id(people), "name": aliases.get(str(other), str(other)).strip(), "mentor": ""}
                 else:
                     target = pairs.get(norm_key(person))
                     intern_key = resolve_name(target, {k: v["name"] for k, v in people.items()}, aliases, report["notes"]) if target else None
@@ -324,7 +331,9 @@ def build_payloads(mapping: dict, base: Path | None = None) -> dict:
 
 
 def import_mapping(con, mapping: dict, base: Path | None = None, dry_run: bool = False) -> dict:
-    built = build_payloads(mapping, base)
+    known = {norm_key(p.name): {"id": int(p.intern_id), "name": p.name, "mentor": "" if p.mentor_name == "—" else p.mentor_name}
+             for p in core.participants(con).itertuples()}
+    built = build_payloads(mapping, base, known)
     rep = built["report"]
     rep["status"] = {"new": 0, "duplicate": 0, "rejected": 0}
     rep["rejected_reasons"] = []
@@ -340,6 +349,18 @@ def import_mapping(con, mapping: dict, base: Path | None = None, dry_run: bool =
         if res["status"] == "rejected":
             rep["rejected_reasons"].append(res["reason"])
     return rep
+
+
+def import_one(con, mapping: dict, source_name: str, file_path: str | Path | None = None, url: str | None = None, base: Path | None = None) -> dict:
+    """Загрузка одного источника из другого файла или по ссылке (например, выгрузка из Google Форм или Таблицы в интерфейсе)."""
+    spec = dict(next(s for s in mapping["sources"] if s["name"] == source_name))
+    if file_path:
+        spec["file"] = str(file_path)
+        spec.pop("url", None)
+    if url:
+        spec["url"] = url
+        spec.pop("file", None)
+    return import_mapping(con, {**mapping, "sources": [spec]}, base)
 
 
 # ───────────────────── живые ответы (форма, webhook, опрос таблицы) ─────────────────────

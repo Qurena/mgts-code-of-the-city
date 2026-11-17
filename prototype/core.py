@@ -64,6 +64,19 @@ DIVERGENCE_THRESHOLD = CFG["thresholds"]["divergence"]
 SIDE_DIMS: dict[str, list[str]] = {s: [d for d in CFG.get("side_dimensions", {}).get(s, list(DIMS)) if d in DIMS] for s in SIDES}
 
 
+def mapping_path() -> Path:
+    """Файл сопоставления колонок: MAPPING_FILE, иначе mapping.json рядом с кодом, иначе (для демо) mapping.demo.json."""
+    if os.environ.get("MAPPING_FILE"):
+        return Path(os.environ["MAPPING_FILE"])
+    own = HERE / "mapping.json"
+    return own if own.exists() or CFG["name"] != "demo" else HERE / "mapping.demo.json"
+
+
+def load_mapping() -> dict:
+    p = mapping_path()
+    return json.loads(p.read_text(encoding="utf-8")) if p.exists() else {"sources": []}
+
+
 def topic_label(t: str) -> str:
     """Подпись темы. В открытом режиме тема может быть любой короткой строкой от модели."""
     return TOPICS.get(t, t)

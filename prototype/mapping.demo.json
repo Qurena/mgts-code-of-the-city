@@ -1,0 +1,30 @@
+{
+  "_help": "Сопоставление колонок для демонстрационной анкеты (survey.json, name=demo). Используется формой в интерфейсе и приёмником, если нет mapping.json.",
+  "auto_create_participants": false,
+  "sources": [
+    {
+      "name": "intern", "side": "intern",
+      "columns": {"person": "Стажёр", "other": "Наставник", "timestamp": "Отметка времени"},
+      "period": {"column": "Месяц", "default": "last"},
+      "scores": [
+        {"column": "Цели и задачи", "dimension": "goals"},
+        {"column": "Обратная связь", "dimension": "feedback"},
+        {"column": "Нагрузка и ресурсы", "dimension": "resources"},
+        {"column": "Обучение и развитие", "dimension": "growth"}
+      ],
+      "comments": ["Комментарий"]
+    },
+    {
+      "name": "mentor", "side": "mentor",
+      "columns": {"person": "Наставник", "other": "Стажёр", "timestamp": "Отметка времени"},
+      "period": {"column": "Месяц", "default": "last"},
+      "scores": [
+        {"column": "Цели и задачи", "dimension": "goals"},
+        {"column": "Обратная связь", "dimension": "feedback"},
+        {"column": "Нагрузка и ресурсы", "dimension": "resources"},
+        {"column": "Обучение и развитие", "dimension": "growth"}
+      ],
+      "comments": ["Комментарий"]
+    }
+  ]
+}

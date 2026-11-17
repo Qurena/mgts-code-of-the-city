@@ -5,7 +5,7 @@
 Подтверждает получение сразу, без ожидания разбора текста моделью. Заголовок x-delivery-id сохраняется для повторных доставок.
 Если задана WEBHOOK_TOKEN, нужен заголовок x-token (или параметр ?token=, для сервисов, которые не умеют заголовки).
 Каждое тело запроса пишется в таблицу inbox: по ней видно настоящий формат присланных данных.
-Запуск: python receiver.py   (по умолчанию 127.0.0.1:8765; mapping.json берётся из MAPPING_FILE)
+Запуск: python receiver.py   (по умолчанию 127.0.0.1:8765; сопоставление колонок: MAPPING_FILE, иначе mapping.json, иначе mapping.demo.json)
 Реальные формы (Яндекс, Google) шлют запросы из интернета: для них нужен публичный адрес (VPS), у Яндекс Форм исходящие запросы идут по IPv6.
 """
 import json
@@ -18,11 +18,10 @@ import core
 import ingest_tools as it
 
 TOKEN = os.environ.get("WEBHOOK_TOKEN")
-MAPPING_FILE = Path(os.environ.get("MAPPING_FILE", Path(__file__).with_name("mapping.json")))
 
 
 def load_mapping() -> dict:
-    return json.loads(MAPPING_FILE.read_text(encoding="utf-8")) if MAPPING_FILE.exists() else {"sources": []}
+    return core.load_mapping()  # читается заново на каждый запрос: mapping.json можно править без перезапуска
 
 
 class Handler(BaseHTTPRequestHandler):

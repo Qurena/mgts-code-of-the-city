@@ -2,21 +2,18 @@
 Запуск: streamlit run app.py   (приёмник ответов: python receiver.py)
 Данные в базе демонстрационные (seed.py). Формат анкет МГТС будет известен на финале."""
 import datetime as dt
-import json
 import os
 import time
-import urllib.error
-import urllib.request
 
 import altair as alt
 import pandas as pd
 import streamlit as st
 
 import core
+import live_ui
 import seed
 
 st.set_page_config(page_title="Пульс стажёров", page_icon="📈", layout="wide")
-RECEIVER_URL = os.environ.get("RECEIVER_URL", "http://127.0.0.1:8765")
 BLUE, GRAPHITE = "#5CC0FF", "#C9D2E3"  # стажёр: голубая сплошная линия, наставник: светлая пунктирная (тёмная тема)
 SCREENS = ["Обзор программы", "Очередь внимания", "Карточка стажёра"]
 BADGE = {"content": ("red", "Комментарий"), "change": ("orange", "Изменение"), "divergence": ("blue", "Расхождение"), "data": ("gray", "Нет данных")}
@@ -57,7 +54,12 @@ def get_con():
     return con
 
 
+MAPPING = core.load_mapping()
+
+
 def snapshot(con):
+    if st.session_state.get("autosync") and MAPPING.get("sources"):
+        live_ui.sync_sources(con, MAPPING, core.mapping_path().parent)  # новые строки из файлов и таблиц
     core.analyze_pending(con)  # разбор текста после приёма: приёмник отвечает сразу
     df, people = core.load_answers(con), core.participants(con)
     ana = core.load_analysis(con)
@@ -91,31 +93,9 @@ with st.sidebar:
     st.caption(f"Анализ комментариев: {os.environ.get('ANALYZER', 'keywords')}")
 
     if role == "HR":
-        with st.expander("Имитация внешней формы"):
-            st.caption("Отправляет ответ на приёмник (POST /response), как это сделала бы настоящая форма.")
-            missing = [(int(i), s) for i in people.intern_id for s in core.SIDES if df[(df.source == s) & (df.intern_id == i) & (df.period == core.N_PERIODS)].empty]
-            f_intern = st.selectbox("Стажёр", people.intern_id, index=list(people.intern_id).index(missing[0][0]) if missing else 0, format_func=lambda i: by_id.loc[i, "name"])
-            f_side = st.radio("Кто отвечает", core.SIDES, format_func=core.SIDE_NAME.get, horizontal=True, index=core.SIDES.index(missing[0][1]) if missing else 0)
-            f_period = st.selectbox("Месяц", range(1, core.N_PERIODS + 1), index=core.N_PERIODS - 1, format_func=lambda p: core.PERIODS[p - 1])
-            f_scores = {k: st.slider(core.DIMS[k], core.SCALE_MIN, core.SCALE_MAX, (core.SCALE_MIN + core.SCALE_MAX) // 2 + 1, key=f"sl_{k}_{f_side}") for k in core.SIDE_DIMS[f_side]}
-            f_comment = st.text_area("Комментарий", placeholder="Например: Нет доступа к нужной системе.")
-            f_id = st.text_input("Номер ответа (response_id)", value=f"form-{dt.datetime.now():%H%M%S}")
-            if st.button("Отправить ответ", type="primary", width="stretch"):
-                payload = {"response_id": f_id, "source": f_side, "intern_id": int(f_intern), "period": int(f_period), "scores": f_scores, "comment": f_comment or None}
-                try:
-                    req = urllib.request.Request(RECEIVER_URL + "/response", data=json.dumps(payload).encode(), headers={"Content-Type": "application/json", "x-delivery-id": f_id, **({"x-token": os.environ["WEBHOOK_TOKEN"]} if os.environ.get("WEBHOOK_TOKEN") else {})})
-                    with urllib.request.urlopen(req, timeout=5) as r:
-                        res = json.load(r)
-                    st.session_state["form_msg"] = ("success", f"Приёмник ответил: {res['status']}")
-                except urllib.error.HTTPError as e:
-                    st.session_state["form_msg"] = ("error", "Приёмник отклонил ответ: " + json.load(e).get("reason", str(e)))
-                except (urllib.error.URLError, OSError):
-                    res = core.ingest(payload, con=con)
-                    st.session_state["form_msg"] = ("warning", f"Приёмник не запущен, ответ принят напрямую ({res['status']}). Для живого показа запустите receiver.py.")
-                st.rerun()  # после перезапуска сообщение показывается ниже: иначе оно исчезло бы сразу
-            if "form_msg" in st.session_state:
-                kind, msg = st.session_state.pop("form_msg")
-                getattr(st, kind)(msg)
+        st.divider()
+        st.markdown("**Новые данные**")
+        live_ui.render_panels(con, MAPPING, core.mapping_path().parent, people)
 
 
 def go(screen, intern=None):
@@ -240,6 +220,7 @@ if screen == SCREENS[0]:
     with left:
         dim = st.selectbox("Вопрос", list(core.DIMS), format_func=core.DIMS.get, index=2)
         m = core.medians(df, dim)
+        m = m[m["n"] > 0]  # сторона, у которой такого вопроса нет в анкете, на графике не рисуется
         st.altair_chart(line_chart(m, "Медиана", 320), width="stretch")
         st.caption("Медиана по ответившим. В демо 5 человек, поэтому число ответов n показано ниже. Две линии, общего среднего нет. Медиана не показывает отдельные случаи, их находят сигналы.")
         piv = m.pivot(index="Сторона", columns="Месяц", values="n").reindex(columns=core.PERIODS).fillna(0).astype(int)
@@ -278,6 +259,6 @@ else:
     st.session_state["intern"] = int(pick)
     render_card(int(pick), mentor_view=False)
 
-if st.session_state.get("auto"):
+if st.session_state.get("auto") or st.session_state.get("autosync"):
     time.sleep(5)
     st.rerun()

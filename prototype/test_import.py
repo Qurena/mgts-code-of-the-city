@@ -87,6 +87,68 @@ class Rehearsal(unittest.TestCase):
         self.assertIn(["access"], [t for t in r["topics"] if t != ["other"]] + [["access"]])  # комментарии из Word дошли до разбора
 
 
+class SheetLive(unittest.TestCase):
+    """Сценарий показа с таблицей: таблицу открывают по ссылке (здесь её роль играет локальный HTTP-сервер с CSV),
+    в неё добавляют строку, исправляют старую, и система подтягивает изменения без дублей и без смены номеров участников."""
+
+    SCRIPT = r"""
+import sys, json, http.server, threading, io
+import pandas as pd
+import core, ingest_tools as it
+
+CSV = {"text": ""}
+class H(http.server.BaseHTTPRequestHandler):
+    def do_GET(self):
+        b = CSV["text"].encode("utf-8")
+        self.send_response(200); self.send_header("Content-Type", "text/csv; charset=utf-8"); self.send_header("Content-Length", str(len(b))); self.end_headers(); self.wfile.write(b)
+    def log_message(self, *a): pass
+srv = http.server.HTTPServer(("127.0.0.1", 0), H); threading.Thread(target=srv.serve_forever, daemon=True).start()
+url = f"http://127.0.0.1:{srv.server_port}/sheet.csv"
+
+def table(rows):
+    return pd.DataFrame(rows, columns=["Отметка времени", "ФИО", "Наставник", "Оценка 1-5", "Комментарий"]).to_csv(index=False)
+
+base = [["01.11.2026 10:00:00", "Иванов Иван", "Орлов О.", 4, ""], ["01.11.2026 10:05:00", "Петров Пётр", "Орлов О.", 5, ""]]
+mapping = {"sources": [{"name": "intern", "side": "intern", "url": url, "columns": {"person": "ФИО", "other": "Наставник", "timestamp": "Отметка времени"},
+           "period": {"column": "Отметка времени", "from_date": {"start": "2026-06-01"}, "default": "last"},
+           "scores": [{"column": "Оценка 1-5", "dimension": "clarity", "scale": [1, 5]}], "comments": ["Комментарий"]}]}
+con = core.connect()
+out = {}
+CSV["text"] = table(base); r1 = it.import_mapping(con, mapping); out["first"] = r1["status"]
+ids1 = dict(zip(core.participants(con).name, core.participants(con).intern_id))
+CSV["text"] = table(base); r2 = it.import_mapping(con, mapping); out["same_again"] = r2["status"]
+# в таблицу сверху вставили новую строку и новичка: порядок строк изменился, номера прежних участников обязаны сохраниться
+new = [["02.11.2026 09:00:00", "Сидоров Семён", "Орлов О.", 3, "Нет доступа к системе"]] + base
+CSV["text"] = table(new); r3 = it.import_mapping(con, mapping); out["added"] = r3["status"]
+ids3 = dict(zip(core.participants(con).name, core.participants(con).intern_id))
+out["ids_stable"] = all(ids3[n] == i for n, i in ids1.items()); out["n_people"] = len(ids3)
+# исправили оценку в старой строке: прежний ответ заменяется, дубля месяца нет
+fixed = [["02.11.2026 09:00:00", "Сидоров Семён", "Орлов О.", 3, "Нет доступа к системе"], ["01.11.2026 10:00:00", "Иванов Иван", "Орлов О.", 2, ""], base[1]]
+CSV["text"] = table(fixed); r4 = it.import_mapping(con, mapping); out["fixed"] = r4["status"]
+df = core.load_answers(con)
+ivan = df[df.intern_id == ids1["Иванов Иван"]]
+out["ivan_rows"] = len(ivan); out["ivan_clarity"] = float(ivan.iloc[0]["clarity"])
+print(json.dumps(out, ensure_ascii=False))
+"""
+
+    def test_sheet_polling_semantics(self):
+        tmp = Path(tempfile.mkdtemp())
+        survey = tmp / "survey.json"
+        survey.write_text(json.dumps({"name": "t", "periods": ["Июн", "Июл", "Авг", "Сен", "Окт", "Ноя"], "scale": [1, 10],
+                                      "dimensions": {"clarity": "Понятность"}, "keyword_rules": {"clarity": "нет доступа"}}, ensure_ascii=False), encoding="utf-8")
+        env = {**os.environ, "SURVEY_CONFIG": str(survey), "PULSE_DB": str(tmp / "s.db"), "PYTHONPATH": str(HERE), "PYTHONWARNINGS": "ignore", "PYTHONIOENCODING": "utf-8"}
+        out = subprocess.run([sys.executable, "-c", self.SCRIPT], capture_output=True, text=True, env=env, encoding="utf-8", cwd=str(tmp))
+        self.assertEqual(out.returncode, 0, out.stderr)
+        r = json.loads(out.stdout.strip().splitlines()[-1])
+        self.assertEqual(r["first"], {"new": 2, "duplicate": 0, "rejected": 0})
+        self.assertEqual(r["same_again"], {"new": 0, "duplicate": 2, "rejected": 0})   # то же чтение таблицы дублей не даёт
+        self.assertEqual(r["added"]["new"], 1)                                        # добавилась одна новая строка
+        self.assertTrue(r["ids_stable"])                                              # номера участников не поехали
+        self.assertEqual(r["n_people"], 3)
+        self.assertEqual(r["fixed"]["new"], 1)                                        # исправленная строка = новый ответ
+        self.assertEqual((r["ivan_rows"], r["ivan_clarity"]), (1, 3.2))               # в расчётах один ответ за месяц, исправленный (2 из 5 -> 3.2 из 10)
+
+
 class LiveForm(unittest.TestCase):
     """Приёмник с сопоставлением колонок: ответ формы в стиле Google Forms приходит по HTTP и меняет данные."""
 
