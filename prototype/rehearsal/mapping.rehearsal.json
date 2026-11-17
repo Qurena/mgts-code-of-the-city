@@ -1,0 +1,27 @@
+{
+  "aliases": {},
+  "sources": [
+    {
+      "name": "intern", "side": "intern", "file": "data/interns.xlsx",
+      "columns": {"person": "ФИО", "other": "Наставник", "timestamp": "Отметка времени"},
+      "period": {"column": "Отметка времени", "from_date": {"start": "2026-06-01"}, "default": "last"},
+      "scores": [
+        {"column": "Понятны ли задачи", "dimension": "clarity", "scale": [1, 5]},
+        {"column": "Хватает ли доступов и инструментов", "dimension": "access", "scale": [1, 5]},
+        {"column": "Достаточно ли обратной связи", "dimension": "feedback", "scale": [1, 5]}
+      ],
+      "comments": ["Что мешает работать?", "Что получилось лучше всего?"]
+    },
+    {
+      "name": "mentor", "side": "mentor", "file": "data/mentors.csv",
+      "columns": {"person": "Наставник", "other": "Стажёр", "timestamp": "Timestamp"},
+      "period": {"column": "Timestamp", "from_date": {"start": "2026-06-01"}, "default": "last"},
+      "scores": [
+        {"column": "Самостоятельность (1-10)", "dimension": "autonomy"},
+        {"column": "Качество результата (1-10)", "dimension": "quality"},
+        {"column": "Качество результата (1-10)", "dimension": "clarity"}
+      ],
+      "comments": ["Комментарий"]
+    }
+  ]
+}

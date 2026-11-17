@@ -1,0 +1,30 @@
+{
+  "_help": "Пример сопоставления колонок. Скопируйте в mapping.json и замените названия колонок на настоящие. Поля с подчёркиванием игнорируются.",
+  "aliases": {"_пример": "Иванов И. -> Иванов Иван Иванович, если имя написано по-разному и фамилией не склеивается"},
+  "pairs": {},
+  "auto_create_participants": true,
+  "sources": [
+    {
+      "_help_person": "person: кто отвечает (стажёр для side=intern, наставник для side=mentor). other: вторая сторона пары, если колонка есть",
+      "name": "intern", "side": "intern", "file": "incoming/interns.xlsx", "sheet": 0,
+      "columns": {"person": "ФИО", "other": "Наставник", "timestamp": "Отметка времени", "response_id": null},
+      "_help_period": "Месяц: колонкой с названием/номером, либо по дате ({from_date: {start}}), либо по порядку строк ({from_order: true}). default: last отправляет живые ответы вне диапазона в последнюю волну",
+      "period": {"column": "Отметка времени", "from_date": {"start": "2026-06-01"}, "default": "last"},
+      "_help_scores": "scale: шкала источника; reverse: чем больше, тем хуже; map: значения-слова -> число; несколько колонок на один dimension усредняются",
+      "scores": [
+        {"column": "Вопрос 1", "dimension": "goals", "scale": [1, 5], "reverse": false, "map": {}}
+      ],
+      "comments": ["Комментарий"],
+      "_help_preprocess": "preprocess: 'rehearsal/prep_wide.py:prep' развернёт широкую таблицу (месяцы в колонках) в длинную"
+    },
+    {
+      "name": "mentor", "side": "mentor", "file": "incoming/mentors.xlsx",
+      "columns": {"person": "Наставник", "other": "Стажёр", "timestamp": "Отметка времени"},
+      "period": {"column": "Отметка времени", "from_date": {"start": "2026-06-01"}, "default": "last"},
+      "scores": [
+        {"column": "Вопрос 1", "dimension": "goals"}
+      ],
+      "comments": ["Комментарий"]
+    }
+  ]
+}

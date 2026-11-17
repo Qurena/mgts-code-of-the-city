@@ -28,6 +28,8 @@ COMMENTS = {  # (стажёр, месяц, сторона) -> текст
 
 
 def seed(con) -> int:
+    if core.CFG["name"] != "demo":
+        raise SystemExit("seed.py работает только с демонстрационной анкетой (survey.json, name=demo)")
     n = 0
     for iid, name, mentor in PEOPLE:
         con.execute("INSERT OR IGNORE INTO participants VALUES(?,?,?)", (iid, name, mentor))

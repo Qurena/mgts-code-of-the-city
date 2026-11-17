@@ -1,5 +1,12 @@
 ﻿.venv/
 pulse.db*
+*.db
+*.db-wal
+*.db-shm
 __pycache__/
 *.log
 *.err
+wheels/
+incoming/
+rehearsal/data/
+rehearsal/*.db*

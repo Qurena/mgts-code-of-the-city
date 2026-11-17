@@ -4,6 +4,7 @@
 import datetime as dt
 import json
 import os
+import time
 import urllib.error
 import urllib.request
 
@@ -51,8 +52,8 @@ button[kind="primary"]{background:linear-gradient(135deg,#008AE0,#7B61FF);border
 @st.cache_resource
 def get_con():
     con = core.connect(shared=True)
-    if con.execute("SELECT COUNT(*) FROM participants").fetchone()[0] == 0:
-        seed.seed(con)
+    if con.execute("SELECT COUNT(*) FROM participants").fetchone()[0] == 0 and core.CFG["name"] == "demo":
+        seed.seed(con)  # демо-данные только для демонстрационной анкеты
     return con
 
 
@@ -65,6 +66,12 @@ def snapshot(con):
 
 con = get_con()
 df, people, ana, sigs = snapshot(con)
+if people.empty:
+    st.title("Пульс стажёров")
+    st.info("В базе пока нет участников. Загрузите данные: `python import_data.py mapping.json` "
+            "или отправьте ответы на приёмник (см. FINALS_PLAYBOOK.md). Страница обновится сама.")
+    time.sleep(3)
+    st.rerun()
 by_id = people.set_index("intern_id")
 open_sigs = [s for s in sigs if core.get_status(con, s["key"]) != "Закрыт"]
 
@@ -73,13 +80,14 @@ st.session_state.setdefault("screen", SCREENS[0])
 st.session_state.setdefault("intern", int(people.intern_id.iloc[0]))
 with st.sidebar:
     st.title("Пульс стажёров")
-    st.caption("Рабочее название. Данные выдуманы для демонстрации.")
+    st.caption("Рабочее название." + (" Данные выдуманы для демонстрации." if core.CFG["name"] == "demo" else ""))
     role = st.radio("Роль", ["HR", "Наставник"], horizontal=True)
     if role == "Наставник":
         mentor_intern = st.selectbox("Чей наставник", people.intern_id, format_func=lambda i: f"{by_id.loc[i, 'mentor_name']} (стажёр {by_id.loc[i, 'name']})")
     st.divider()
     if st.button("Обновить данные", width="stretch"):
         st.rerun()
+    auto_refresh = st.toggle("Автообновление каждые 5 с", key="auto", help="Новые ответы появляются на экране без нажатия кнопки")
     st.caption(f"Анализ комментариев: {os.environ.get('ANALYZER', 'keywords')}")
 
     if role == "HR":
@@ -89,7 +97,7 @@ with st.sidebar:
             f_intern = st.selectbox("Стажёр", people.intern_id, index=list(people.intern_id).index(missing[0][0]) if missing else 0, format_func=lambda i: by_id.loc[i, "name"])
             f_side = st.radio("Кто отвечает", core.SIDES, format_func=core.SIDE_NAME.get, horizontal=True, index=core.SIDES.index(missing[0][1]) if missing else 0)
             f_period = st.selectbox("Месяц", range(1, core.N_PERIODS + 1), index=core.N_PERIODS - 1, format_func=lambda p: core.PERIODS[p - 1])
-            f_scores = {k: st.slider(v, core.SCALE_MIN, core.SCALE_MAX, 7, key=f"sl_{k}") for k, v in core.DIMS.items()}
+            f_scores = {k: st.slider(core.DIMS[k], core.SCALE_MIN, core.SCALE_MAX, (core.SCALE_MIN + core.SCALE_MAX) // 2 + 1, key=f"sl_{k}_{f_side}") for k in core.SIDE_DIMS[f_side]}
             f_comment = st.text_area("Комментарий", placeholder="Например: Нет доступа к нужной системе.")
             f_id = st.text_input("Номер ответа (response_id)", value=f"form-{dt.datetime.now():%H%M%S}")
             if st.button("Отправить ответ", type="primary", width="stretch"):
@@ -144,7 +152,9 @@ def render_card(iid: int, mentor_view: bool):
             s = mine[(mine.source == side) & (mine.period == pn)][k]
             return None if s.empty or pd.isna(s.iloc[0]) else float(s.iloc[0])
 
-        def chip(v):  # цвет по уровню оценки: подсказка для чтения, а не порог сигнала
+        def chip(v, asked=True):  # цвет по уровню оценки: подсказка для чтения, а не порог сигнала
+            if not asked:
+                return '<span class="sep">—</span>'  # такого вопроса нет в анкете этой стороны
             if v is None:
                 return '<span class="sc no">нет</span>'
             return f'<span class="sc {"hi" if v >= 8 else "mid" if v >= 6 else "lo"}">{v:.0f}</span>'
@@ -152,7 +162,7 @@ def render_card(iid: int, mentor_view: bool):
         head = "".join(f"<th>{p}</th>" for p in core.PERIODS)
         body = ""
         for k, label in core.DIMS.items():
-            cells = "".join(f'<td>{chip(val("intern", pn, k))}<span class="sep">/</span>{chip(val("mentor", pn, k))}</td>' for pn in range(1, core.N_PERIODS + 1))
+            cells = "".join(f'<td>{chip(val("intern", pn, k), k in core.SIDE_DIMS["intern"])}<span class="sep">/</span>{chip(val("mentor", pn, k), k in core.SIDE_DIMS["mentor"])}</td>' for pn in range(1, core.N_PERIODS + 1))
             body += f"<tr><td>{label}</td>{cells}</tr>"
         st.markdown(
             f'<div class="sc-wrap"><table class="sc-table"><tr><th>Вопрос (стажёр / наставник)</th>{head}</tr>{body}</table></div>'
@@ -185,7 +195,7 @@ def render_card(iid: int, mentor_view: bool):
                 with st.container(border=True):
                     st.caption(f"{core.SIDE_NAME[r.source]} · {core.PERIODS[r.period - 1]}")
                     st.markdown(text)
-                    tags = " ".join(f":gray-badge[Тема: {core.TOPICS[t]}]" for t in a.get("topics", []))
+                    tags = " ".join(f":gray-badge[Тема: {core.topic_label(t)}]" for t in a.get("topics", []))
                     if a.get("validation_status") == "ok" and a.get("evidence_quote"):
                         tags += " :green-badge[цитата найдена в источнике]"
                     elif a.get("validation_status") == "manual":
@@ -240,7 +250,7 @@ if screen == SCREENS[0]:
         if cnt.empty:
             st.write("Тем пока нет.")
         else:
-            cdf = pd.DataFrame({"Тема": [core.TOPICS[t] for t in cnt.index], "Комментариев": cnt.values})
+            cdf = pd.DataFrame({"Тема": [core.topic_label(t) for t in cnt.index], "Комментариев": cnt.values})
             st.altair_chart(alt.Chart(cdf).mark_bar(color=BLUE).encode(y=alt.Y("Тема:N", sort="-x", title=None), x=alt.X("Комментариев:Q", axis=alt.Axis(tickMinStep=1, title=None))).properties(height=180), width="stretch")
         st.info("Тему и цитату определяет разборщик, цитату проверяет код. Единичные случаи не превращаем в процент недовольных.")
 
@@ -267,3 +277,7 @@ else:
     pick = c0.selectbox("Стажёр", list(people.intern_id), index=list(people.intern_id).index(st.session_state["intern"]), format_func=lambda i: by_id.loc[i, "name"])
     st.session_state["intern"] = int(pick)
     render_card(int(pick), mentor_view=False)
+
+if st.session_state.get("auto"):
+    time.sleep(5)
+    st.rerun()
