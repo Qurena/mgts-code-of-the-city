@@ -80,7 +80,7 @@ with st.sidebar:
             if st.button("Отправить ответ", type="primary", width="stretch"):
                 payload = {"response_id": f_id, "source": f_side, "intern_id": int(f_intern), "period": int(f_period), "scores": f_scores, "comment": f_comment or None}
                 try:
-                    req = urllib.request.Request(RECEIVER_URL + "/response", data=json.dumps(payload).encode(), headers={"Content-Type": "application/json", "x-delivery-id": f_id})
+                    req = urllib.request.Request(RECEIVER_URL + "/response", data=json.dumps(payload).encode(), headers={"Content-Type": "application/json", "x-delivery-id": f_id, **({"x-token": os.environ["WEBHOOK_TOKEN"]} if os.environ.get("WEBHOOK_TOKEN") else {})})
                     with urllib.request.urlopen(req, timeout=5) as r:
                         res = json.load(r)
                     st.session_state["form_msg"] = ("success", f"Приёмник ответил: {res['status']}")
