@@ -1,0 +1,245 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><style>html{-webkit-text-size-adjust:100%}body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style><title>Пульс стажировки</title>
+<style>
+/* Макет дашборда HR: обзор → очередь внимания → карточка стажёра (страница 17 стратегии).
+   Оформление по токенам сайта studchamp.mgts.ru: синий #008AE0, графит #1D2023, серая шкала, радиусы 8/12/16, шрифты MTS с запасными.
+   Файлы шрифтов MTS не копируются (они принадлежат МГТС/МТС): без них берётся Segoe UI или системный шрифт.
+   Стажёр: синяя сплошная линия. Наставник: графитовая пунктирная. Оранжевый и красный только для статусов сигналов. */
+:root{
+  /* тёмная панель по референсам: стеклянные карточки, градиент синий #008AE0 → фиолетовый #7B61FF (оба из палитры МГТС) */
+  --bg:#0A0D16; --glow-a:rgba(0,138,224,.22); --glow-b:rgba(123,97,255,.20);
+  --surface:rgba(255,255,255,.045); --ink:#F2F5FA; --muted:#A3AEC2; --line:rgba(255,255,255,.10); --soft:rgba(255,255,255,.07);
+  --brand:#5CC0FF; --brand-strong:linear-gradient(135deg,#008AE0 0%,#7B61FF 100%); --brand-ink:#FFFFFF; --grad:linear-gradient(135deg,#008AE0 0%,#7B61FF 100%);
+  --intern:#5CC0FF; --mentor:#C9D2E3;
+  --crit:#FF9B7A; --warn:#FAC031; --ok:#4BDB7A;
+  --crit-bg:rgba(255,138,92,.16); --warn-bg:rgba(250,192,49,.14); --ok-bg:rgba(75,219,122,.14); --info-bg:rgba(0,138,224,.18);
+  --font-head:'MTS Wide','Segoe UI',system-ui,sans-serif; --font-body:'MTS Compact','Segoe UI',system-ui,sans-serif;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]){
+  --bg:#EEF1F8; --glow-a:rgba(0,138,224,.16); --glow-b:rgba(123,97,255,.14);
+  --surface:rgba(255,255,255,.85); --ink:#1D2023; --muted:#566074; --line:rgba(29,32,35,.10); --soft:rgba(29,32,35,.05);
+  --brand:#0072BD; --intern:#0072BD; --mentor:#1D2023;
+  --crit:#B23509; --warn:#7A5600; --ok:#14783A;
+  --crit-bg:#FFE5DC; --warn-bg:#FFF1CC; --ok-bg:#E3F9EA; --info-bg:#E6F4FC; color-scheme:light}}
+:root[data-theme="light"]{
+  --bg:#EEF1F8; --glow-a:rgba(0,138,224,.16); --glow-b:rgba(123,97,255,.14);
+  --surface:rgba(255,255,255,.85); --ink:#1D2023; --muted:#566074; --line:rgba(29,32,35,.10); --soft:rgba(29,32,35,.05);
+  --brand:#0072BD; --intern:#0072BD; --mentor:#1D2023;
+  --crit:#B23509; --warn:#7A5600; --ok:#14783A;
+  --crit-bg:#FFE5DC; --warn-bg:#FFF1CC; --ok-bg:#E3F9EA; --info-bg:#E6F4FC; color-scheme:light}
+*{box-sizing:border-box}
+body{background:var(--bg) radial-gradient(900px 500px at 85% -10%,var(--glow-b),transparent 60%) fixed;background-image:radial-gradient(900px 500px at 85% -10%,var(--glow-b),transparent 60%),radial-gradient(800px 500px at 10% 0%,var(--glow-a),transparent 60%);background-attachment:fixed;color:var(--ink);font:14px/1.5 var(--font-body);padding-block:0 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1120px;margin:0 auto}
+h1,h2,h3{font-family:var(--font-head);margin:0;text-wrap:balance}
+h2{font-size:18px} h3{font-size:14px}
+.num{font-variant-numeric:tabular-nums}
+.demo{background:var(--warn-bg);color:var(--warn);font-size:12px;padding:6px 12px;margin:0 calc(-1*max(16px,env(safe-area-inset-left,0px)));text-align:center}
+header{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center;justify-content:space-between;padding:16px 0 12px}
+.logo{display:flex;align-items:baseline;gap:10px}
+.logo h1{font-size:22px;font-weight:700;color:var(--brand)}
+.logo span{color:var(--muted);font-size:12px}
+.sitelink{color:var(--brand);font-size:13px;text-decoration:none;white-space:nowrap}
+.sitelink:hover{text-decoration:underline}
+.ctrl{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface);backdrop-filter:blur(14px)}
+.seg button{border:0;background:none;color:var(--muted);padding:7px 12px;font:500 13px var(--font-body);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--brand-strong);color:var(--brand-ink)}
+button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible,textarea:focus-visible{outline:2px solid var(--intern);outline-offset:2px}
+select,input,textarea{font:13px var(--font-body);color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 10px;min-width:0}
+nav.tabs{display:inline-flex;gap:4px;padding:5px;margin-bottom:20px;max-width:100%;overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:16px;backdrop-filter:blur(14px)}
+nav.tabs button{border:0;background:none;color:var(--muted);padding:9px 16px;font:600 14px var(--font-head);cursor:pointer;border-radius:12px;white-space:nowrap}
+nav.tabs button:hover{color:var(--ink)}
+nav.tabs button[aria-selected="true"]{color:var(--brand-ink);background:var(--grad)}
+.badge{display:inline-block;min-width:20px;padding:0 6px;border-radius:10px;background:var(--crit);color:#fff;font-size:11px;text-align:center;margin-left:6px}
+.grid{display:grid;gap:16px}
+.g3{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.g2{grid-template-columns:minmax(0,3fr) minmax(0,2fr);align-items:start}
+@media(max-width:820px){.g2{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:20px;min-width:0;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.g3>.kpi:first-child{background:var(--grad);border-color:transparent;color:#fff}
+.g3>.kpi:first-child .l,.g3>.kpi:first-child .s{color:rgba(255,255,255,.88)}
+.kpi .v{font:700 32px var(--font-head);margin-top:6px}
+.kpi .l{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+.kpi .s{color:var(--muted);font-size:12px}
+.head{display:flex;flex-wrap:wrap;gap:8px 16px;justify-content:space-between;align-items:center;margin-bottom:12px}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--muted)}
+.legend i{display:inline-block;width:18px;height:3px;vertical-align:middle;margin-right:6px;border-radius:2px}
+svg text{fill:var(--muted);font:11px var(--font-body)}
+.pill{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px;white-space:nowrap}
+.p-content{background:var(--crit-bg);color:var(--crit)}
+.p-change{background:var(--warn-bg);color:var(--warn)}
+.p-div{background:var(--info-bg);color:var(--intern)}
+.p-data{background:var(--soft);color:var(--muted)}
+.p-ok{background:var(--ok-bg);color:var(--ok)}
+.list{display:flex;flex-direction:column}
+.row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;padding:12px 0;border-top:1px solid var(--line);align-items:center}
+.row:first-child{border-top:0}
+.row .t{font-weight:600}
+.row .m{color:var(--muted);font-size:13px}
+.row button.open{border:1px solid var(--line);background:var(--soft);color:var(--ink);border-radius:10px;padding:8px 12px;font:500 13px var(--font-body);cursor:pointer}
+.bar{display:grid;grid-template-columns:minmax(90px,150px) 1fr 24px;gap:8px;align-items:center;margin:6px 0;font-size:13px}
+.bar div.tr{background:var(--soft);height:10px;border-radius:5px;overflow:hidden}
+.bar div.tr i{display:block;height:100%;background:var(--grad);border-radius:5px}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:6px 8px;text-align:center;border-bottom:1px solid var(--line)}
+th:first-child,td:first-child{text-align:left}
+th{color:var(--muted);font-weight:500}
+td.low{background:var(--crit-bg);color:var(--crit);font-weight:600}
+td.gap{color:var(--muted);background:var(--soft)}
+.scroll{overflow-x:auto}
+.quote{border-left:3px solid var(--line);padding:2px 0 2px 12px;margin:8px 0}
+.quote mark{background:var(--warn-bg);color:var(--ink);padding:0 2px;border-radius:2px}
+.who{font-size:12px;font-weight:600}
+.who.i{color:var(--intern)} .who.m{color:var(--mentor)}
+.note{background:var(--info-bg);color:var(--ink);border-radius:14px;padding:12px 14px;font-size:13px}
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:8px}
+.form textarea{grid-column:1/-1;min-height:56px;resize:vertical}
+.btn{background:var(--brand-strong);color:var(--brand-ink);border:0;border-radius:12px;padding:8px 14px;font:600 13px var(--font-body);cursor:pointer}
+.empty{color:var(--muted);padding:12px 0}
+.back{background:none;border:0;color:var(--intern);cursor:pointer;font:500 13px var(--font-body);padding:0;margin-bottom:10px}
+</style>
+
+</head><body><div class="demo">Макет интерфейса. Все имена, оценки и комментарии выдуманы для демонстрации; настоящие данные МГТС появятся на финале.</div>
+<div class="wrap">
+<header>
+  <div class="logo"><h1>Пульс стажировки</h1><span>рабочее название · когорта-пример · 6 волн</span><a class="sitelink" href="index.html">← О команде</a></div>
+  <div class="ctrl">
+    <div class="seg" role="group" aria-label="Роль"><button id="roleHr" aria-pressed="true">HR</button><button id="roleMentor" aria-pressed="false">Наставник</button></div>
+    <select id="mentorPick" aria-label="Чей наставник" hidden></select>
+  </div>
+</header>
+<nav class="tabs" role="tablist" id="tabs"></nav>
+<main id="view"></main>
+</div>
+
+<script>
+const WAVES=['Июн','Июл','Авг','Сен','Окт','Ноя'];
+const DIMS={goals:'Цели и задачи',feedback:'Обратная связь',resources:'Нагрузка и ресурсы',growth:'Обучение и развитие'};
+const TOPICS={goals:'Цели и задачи',feedback:'Обратная связь',resources:'Нагрузка и ресурсы',growth:'Обучение и развитие',interaction:'Взаимодействие',other:'Другое / непонятно'};
+const N=null;
+const D=[
+{id:1,name:'Алексей К.',i:{goals:[7,7,8,8,8,8],feedback:[7,8,8,8,7,8],resources:[8,8,8,7,8,8],growth:[7,7,8,8,8,9]},m:{goals:[7,8,8,8,8,8],feedback:[8,8,8,8,8,8],resources:[8,8,8,8,8,8],growth:[7,8,8,8,9,9]}},
+{id:2,name:'Мария С.',i:{goals:[8,8,7,7,7,7],feedback:[8,7,7,7,7,6],resources:[8,8,7,5,4,4],growth:[7,7,7,7,6,6]},m:{goals:[8,8,8,8,8,8],feedback:[8,8,8,8,8,8],resources:[8,8,8,8,8,8],growth:[8,8,8,8,8,8]}},
+{id:3,name:'Артём Л.',i:{goals:[7,7,7,7,7,7],feedback:[7,7,7,7,7,7],resources:[8,8,8,8,8,8],growth:[8,8,7,5,4,4]},m:{goals:[7,7,7,7,7,7],feedback:[7,7,7,7,7,7],resources:[8,8,8,8,8,8],growth:[8,8,8,8,8,8]}},
+{id:4,name:'Ирина Д.',i:{goals:[7,7,7,7,7,7],feedback:[8,7,6,6,6,6],resources:[8,8,8,8,8,8],growth:[7,7,7,7,7,7]},m:{goals:[7,7,7,7,7,7],feedback:[8,8,8,8,8,8],resources:[8,8,8,8,8,8],growth:[7,7,7,7,7,7]}},
+{id:5,name:'Павел Н.',i:{goals:[6,7,7,7,7,N],feedback:[7,7,7,7,7,N],resources:[7,7,7,7,7,N],growth:[6,6,7,7,7,N]},m:{goals:[7,7,7,7,7,7],feedback:[7,7,7,7,7,7],resources:[7,7,7,7,7,7],growth:[7,7,7,7,7,7]}}
+];
+// Темы и цитаты размечены вручную для макета. В продукте их выдаёт ИИ, а код проверяет, что цитата дословно есть в тексте.
+const C=[
+{id:'c1',u:2,w:4,side:'i',text:'Не понимаю, к кому обратиться за доступом в систему заявок, уже вторую неделю жду доступ.',topic:'resources',quote:'жду доступ',action:'Проверить доступы и владельца заявки'},
+{id:'c2',u:2,w:6,side:'i',text:'Доступа до сих пор нет, задачи делаю в тестовой среде.',topic:'resources',quote:'Доступа до сих пор нет',action:'Проверить доступы и владельца заявки'},
+{id:'c3',u:2,w:6,side:'m',text:'Мария быстро включилась, вопросов по работе нет.',topic:'other',quote:null,action:null},
+{id:'c4',u:3,w:6,side:'i',text:'Задания однотипные, нового мало.',topic:'growth',quote:'Задания однотипные',action:'Обсудить план развития и следующий уровень задач'},
+{id:'c5',u:3,w:6,side:'m',text:'Справляется отлично, готов к более сложным задачам.',topic:'growth',quote:'готов к более сложным задачам',action:null},
+{id:'c6',u:4,w:5,side:'i',text:'За месяц так и не получилось обсудить работу с наставником.',topic:'feedback',quote:'не получилось обсудить работу',action:'Согласовать регулярную встречу'},
+{id:'c7',u:1,w:6,side:'i',text:'Всё устраивает, нравится команда.',topic:'other',quote:null,action:null}
+];
+const st={role:'hr',tab:'overview',dim:'resources',intern:2,mentor:1,status:{},log:{}};
+const $=s=>document.querySelector(s), esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const U=id=>D.find(x=>x.id===id);
+const median=a=>{const b=a.filter(x=>x!==N).sort((x,y)=>x-y);if(!b.length)return N;const h=b.length/2;return b.length%2?b[(b.length-1)/2]:(b[h-1]+b[h])/2};
+
+// Правила из стратегии (стр. 17): падение ≥2 к прошлой волне, расхождение ≥3 по одному вопросу, пропуск ответа, цитата с барьером.
+function signals(){
+  const out=[];
+  D.forEach(u=>{
+    Object.keys(DIMS).forEach(k=>{
+      ['i','m'].forEach(s=>{const a=u[s][k];for(let w=a.length-1;w>0;w--){if(a[w]!==N&&a[w-1]!==N&&a[w-1]-a[w]>=2){out.push({key:`ch-${u.id}-${k}-${s}`,type:'change',u:u.id,w,dim:k,pr:2+(a[w-1]-a[w]>=3?1:0),title:`${s==='i'?'Стажёр':'Наставник'}: оценка «${DIMS[k]}» упала с ${a[w-1]} до ${a[w]}`,why:`Падение на ${a[w-1]-a[w]} п. к предыдущей волне. Повод проверить контекст, не прогноз.`});break}}});
+      for(let w=5;w>=0;w--){const x=u.i[k][w],y=u.m[k][w];if(x!==N&&y!==N&&Math.abs(x-y)>=3){out.push({key:`dv-${u.id}-${k}`,type:'div',u:u.id,w,dim:k,pr:2,title:`Расхождение по «${DIMS[k]}»: стажёр ${x}, наставник ${y}`,why:`Разница ${Math.abs(x-y)} п. по одному вопросу и одной волне. Средний балл не считаем.`});break}}
+    });
+    ['i','m'].forEach(s=>{const miss=Object.keys(DIMS).every(k=>u[s][k][5]===N);if(miss)out.push({key:`dq-${u.id}-${s}`,type:'data',u:u.id,w:5,pr:1,title:`Нет ответа ${s==='i'?'стажёра':'наставника'} за волну «${WAVES[5]}»`,why:'Данных недостаточно. Ноль не подставляем, оценку человеку не даём.'})});
+  });
+  C.filter(c=>c.side==='i'&&c.quote&&c.topic!=='other'&&c.text.includes(c.quote)).forEach(c=>out.push({key:'ct-'+c.id,type:'content',u:c.u,w:c.w-1,dim:c.topic,pr:3,title:`Барьер в комментарии: «${c.quote}»`,why:`Тема: ${TOPICS[c.topic]}. Следующий шаг из каталога: ${c.action}.`,cid:c.id}));
+  out.sort((a,b)=>b.pr-a.pr||b.w-a.w);
+  return out;
+}
+const SIG=signals();
+const TYPE={content:['p-content','Содержание'],change:['p-change','Изменение'],div:['p-div','Расхождение'],data:['p-data','Качество данных']};
+const sstat=k=>st.status[k]||'Новый';
+const open=()=>SIG.filter(s=>sstat(s.key)!=='Закрыт');
+
+function chart(series,opts={}){
+  const W=640,H=250,L=30,R=14,T=12,B=28,x=i=>L+(W-L-R)*i/5,y=v=>T+(H-T-B)*(10-v)/9;
+  let g='';for(const v of [2,4,6,8,10])g+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-width="1"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end">${v}</text>`;
+  WAVES.forEach((m,i)=>{g+=`<text x="${x(i)}" y="${H-8}" text-anchor="middle">${m}</text>`});
+  series.forEach(s=>{
+    for(let i=0;i<6;i++){if(s.v[i]===N){g+=`<rect x="${x(i)-14}" y="${T}" width="28" height="${H-T-B}" fill="var(--soft)" opacity=".7"/><text x="${x(i)}" y="${T+14}" text-anchor="middle">нет</text>`}}
+    let d='',pen=false;s.v.forEach((v,i)=>{if(v===N){pen=false;return}d+=(pen?'L':'M')+x(i)+' '+y(v)+' ';pen=true});
+    g+=`<path d="${d}" fill="none" stroke="var(--${s.c})" stroke-width="2.5" ${s.dash?'stroke-dasharray="6 4"':''} stroke-linejoin="round"/>`;
+    s.v.forEach((v,i)=>{if(v!==N)g+=`<circle cx="${x(i)}" cy="${y(v)}" r="${i===5?5:3.5}" fill="${i===5?'var(--'+s.c+')':'var(--bg)'}" stroke="var(--${s.c})" stroke-width="2"><title>${s.name}, ${WAVES[i]}: ${v}</title></circle>`});
+    const last=s.v[5]!==N?5:s.v.map((v,i)=>v!==N?i:-1).filter(i=>i>=0).pop();
+    if(last>=0)g+=`<text x="${x(last)+(last===5?-8:8)}" y="${y(s.v[last])-9}" text-anchor="${last===5?'end':'start'}" style="fill:var(--${s.c});font-weight:600">${s.v[last]}</text>`;
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="${opts.label||'График по волнам'}">${g}</svg>`;
+}
+const legend=()=>`<div class="legend"><span><i style="background:var(--intern)"></i>Стажёры</span><span><i style="background:none;height:0;border-top:3px dashed var(--mentor)"></i>Наставники</span></div>`;
+const dimSel=()=>`<select id="dimSel" aria-label="Вопрос">${Object.entries(DIMS).map(([k,v])=>`<option value="${k}" ${k===st.dim?'selected':''}>${v}</option>`).join('')}</select>`;
+
+function overview(){
+  const n=D.filter(u=>u.i.goals[5]!==N).length,nm=D.filter(u=>u.m.goals[5]!==N).length,o=open();
+  const med=s=>WAVES.map((_,w)=>median(D.map(u=>u[s][st.dim][w])));
+  const cnt={};C.forEach(c=>{if(c.topic!=='other')cnt[c.topic]=(cnt[c.topic]||0)+1});
+  const mx=Math.max(1,...Object.values(cnt));
+  return `<div class="grid g3">
+   <div class="card kpi"><div class="l">Ответили в волне «${WAVES[5]}»</div><div class="v num">${n+nm} из ${D.length*2}</div><div class="s">стажёры ${n}/${D.length} · наставники ${nm}/${D.length}</div></div>
+   <div class="card kpi"><div class="l">Требуют внимания</div><div class="v num">${o.length}</div><div class="s">${o.filter(s=>s.type==='content').length} содержательных · ${o.filter(s=>s.type==='change'||s.type==='div').length} по динамике · ${o.filter(s=>s.type==='data').length} по данным</div></div>
+   <div class="card kpi"><div class="l">Последнее обновление</div><div class="v num">17.11 14:05</div><div class="s">новый ответ из внешней формы · пример</div></div>
+  </div>
+  <div class="grid g2" style="margin-top:16px">
+   <div class="card"><div class="head"><h2>Динамика по волнам</h2><div class="ctrl">${dimSel()}</div></div>${legend()}
+     ${chart([{v:med('i'),c:'intern',name:'Стажёры (медиана)'},{v:med('m'),c:'mentor',name:'Наставники (медиана)',dash:1}],{label:'Медиана оценок стажёров и наставников по волнам'})}
+     <div class="s" style="color:var(--muted);font-size:12px">Медиана по ответившим; в когорте-примере 5 человек, поэтому n показан всегда. Две линии, без общего среднего.</div></div>
+   <div class="card"><h2>Темы в комментариях</h2><p style="color:var(--muted);margin:4px 0 12px;font-size:13px">Тему и цитату определяет ИИ, цитату проверяет код.</p>
+     ${Object.entries(cnt).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div class="bar"><span>${TOPICS[k]}</span><div class="tr"><i style="width:${v/mx*100}%"></i></div><b class="num">${v}</b></div>`).join('')}
+     <div class="note" style="margin-top:14px">Единичные случаи не складываем в «процент недовольных»: на малой группе показываем число комментариев.</div></div>
+  </div>`;
+}
+function queue(){
+  const o=SIG;
+  return `<div class="card"><div class="head"><h2>Очередь внимания</h2><span style="color:var(--muted);font-size:13px">Приоритет: серьёзность барьера, повтор, срок без реакции. HR может менять статус.</span></div><div class="list">
+  ${o.map(s=>{const t=TYPE[s.type],u=U(s.u);return `<div class="row"><div><span class="pill ${t[0]}">${t[1]}</span> <span class="t">${esc(u.name)}</span> <span class="m">· волна «${WAVES[s.w]}»</span><div class="t" style="font-weight:500;margin-top:4px">${esc(s.title)}</div><div class="m">${esc(s.why)}</div></div>
+   <div class="ctrl"><select data-st="${s.key}" aria-label="Статус">${['Новый','В работе','Закрыт'].map(x=>`<option ${sstat(s.key)===x?'selected':''}>${x}</option>`).join('')}</select><button class="open" data-open="${s.u}">Карточка</button></div></div>`}).join('')}
+  </div></div>`;
+}
+function card(id,mentorView){
+  const u=U(id),sigs=SIG.filter(s=>s.u===id),cm=C.filter(c=>c.u===id),log=st.log[id]||[];
+  const tbl=`<div class="scroll"><table><tr><th>Вопрос (стажёр / наставник)</th>${WAVES.map(w=>`<th>${w}</th>`).join('')}</tr>${Object.entries(DIMS).map(([k,l])=>`<tr><td>${l}</td>${WAVES.map((_,w)=>{const a=u.i[k][w],b=u.m[k][w];const low=a!==N&&b!==N&&Math.abs(a-b)>=3||(a!==N&&w>0&&u.i[k][w-1]!==N&&u.i[k][w-1]-a>=2);return `<td class="${a===N?'gap':low?'low':''} num">${a===N?'нет':a} / ${b===N?'нет':b}</td>`}).join('')}</tr>`).join('')}</table></div>`;
+  const comments=mentorView?`<div class="note">Тексты стажёра скрыты политикой доступа. Показывать ли их наставнику, решает HR (открытый вопрос).</div>`:
+    (cm.length?cm.map(c=>{const ok=c.quote&&c.text.includes(c.quote);const t=ok?esc(c.text).replace(esc(c.quote),'<mark>'+esc(c.quote)+'</mark>'):esc(c.text);
+      return `<div class="quote"><div class="who ${c.side}">${c.side==='i'?'Стажёр':'Наставник'} · ${WAVES[c.w-1]}</div><div>${t}</div><div style="margin-top:4px"><span class="pill p-data">Тема: ${TOPICS[c.topic]}</span> ${c.quote?'<span class="pill p-ok">цитата найдена в источнике</span>':''}</div></div>`}).join(''):'<div class="empty">Комментариев нет.</div>');
+  return `${mentorView?'':'<button class="back" id="back">← Очередь внимания</button>'}
+  <div class="grid g2"><div class="card"><div class="head"><div><h2>${esc(u.name)}</h2><span style="color:var(--muted);font-size:13px">Наставник назначен (пример) · ${WAVES.length} волн</span></div><div class="ctrl">${dimSel()}</div></div>${legend()}
+   ${chart([{v:u.i[st.dim],c:'intern',name:'Стажёр'},{v:u.m[st.dim],c:'mentor',name:'Наставник',dash:1}],{label:'Оценки стажёра и наставника'})}
+   <h3 style="margin:14px 0 6px">Все ответы по волнам</h3>${tbl}</div>
+   <div class="grid" style="align-content:start">
+    <div class="card"><h2>Сигналы</h2>${sigs.length?sigs.map(s=>`<div class="row"><div><span class="pill ${TYPE[s.type][0]}">${TYPE[s.type][1]}</span><div style="margin-top:4px">${esc(s.title)}</div><div class="m">${esc(s.why)}</div></div></div>`).join(''):'<div class="empty">Сигналов нет.</div>'}</div>
+    <div class="card"><h2>Комментарии</h2>${comments}</div>
+    ${mentorView?'':`<div class="card"><h2>Действие HR</h2>${log.map(l=>`<div class="quote"><div class="who">${esc(l.owner)} · до ${esc(l.due)}</div>${esc(l.note)}</div>`).join('')}
+     <form class="form" id="actForm"><input id="actOwner" placeholder="Ответственный" required><input id="actDue" type="date" required><textarea id="actNote" placeholder="Что делаем и почему" required></textarea><button class="btn" type="submit">Записать действие</button></form></div>`}
+   </div></div>`;
+}
+function render(){
+  const hr=st.role==='hr';
+  $('#mentorPick').hidden=hr;
+  $('#roleHr').setAttribute('aria-pressed',hr);$('#roleMentor').setAttribute('aria-pressed',!hr);
+  const tabs=hr?[['overview','Обзор программы'],['queue','Очередь внимания'+`<span class="badge">${open().length}</span>`],['intern','Карточка стажёра']]:[['intern','Мой стажёр']];
+  $('#tabs').innerHTML=tabs.map(([k,l])=>`<button role="tab" data-tab="${k}" aria-selected="${st.tab===k}">${l}</button>`).join('');
+  const v=$('#view');
+  if(!hr){st.tab='intern';v.innerHTML=card(st.mentor,true)}
+  else v.innerHTML=st.tab==='overview'?overview():st.tab==='queue'?queue():card(st.intern,false);
+  const ds=$('#dimSel');if(ds)ds.onchange=e=>{st.dim=e.target.value;render()};
+  v.querySelectorAll('[data-st]').forEach(s=>s.onchange=e=>{st.status[s.dataset.st]=e.target.value;render()});
+  v.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>{st.intern=+b.dataset.open;st.tab='intern';location.hash='intern';render()});
+  const bk=$('#back');if(bk)bk.onclick=()=>{st.tab='queue';location.hash='queue';render()};
+  const f=$('#actForm');if(f)f.onsubmit=e=>{e.preventDefault();(st.log[st.intern]=st.log[st.intern]||[]).push({owner:$('#actOwner').value,due:$('#actDue').value,note:$('#actNote').value});render()};
+}
+$('#tabs').onclick=e=>{const b=e.target.closest('[data-tab]');if(!b)return;st.tab=b.dataset.tab;location.hash=st.tab;render()};
+$('#roleHr').onclick=()=>{st.role='hr';st.tab='overview';render()};
+$('#roleMentor').onclick=()=>{st.role='mentor';render()};
+$('#mentorPick').innerHTML=D.map(u=>`<option value="${u.id}">Наставник: ${esc(u.name)}</option>`).join('');
+$('#mentorPick').onchange=e=>{st.mentor=+e.target.value;render()};
+function fromHash(){const h=location.hash.slice(1);if(['overview','queue','intern'].includes(h))st.tab=h}
+window.addEventListener('hashchange',()=>{fromHash();render()});
+fromHash();render();
+</script>
+</body></html>

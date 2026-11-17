@@ -1,0 +1,12 @@
+# Тёмная тема по референсам и токенам сайта чемпионата: синий #008AE0 (в градиенте с фиолетовым #7B61FF из палитры МГТС), тёмный фон.
+[theme]
+base = "dark"
+primaryColor = "#008AE0"
+backgroundColor = "#0A0D16"
+secondaryBackgroundColor = "#141A2B"
+textColor = "#F2F5FA"
+font = "sans-serif"
+baseRadius = "large"
+
+[browser]
+gatherUsageStats = false

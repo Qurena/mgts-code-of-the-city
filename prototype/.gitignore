@@ -1,0 +1,5 @@
+﻿.venv/
+pulse.db*
+__pycache__/
+*.log
+*.err
