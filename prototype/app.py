@@ -30,6 +30,21 @@ h1,h2,h3{letter-spacing:0}
 [data-testid="stColumn"]:first-child [data-testid="stMetric"]{background:linear-gradient(135deg,#008AE0,#7B61FF);border-color:transparent}
 button[kind="primary"]{background:linear-gradient(135deg,#008AE0,#7B61FF);border:0}
 [data-testid="stSidebar"]{background:rgba(255,255,255,.03);border-right:1px solid rgba(255,255,255,.08)}
+/* таблица оценок с цветными баллами */
+.sc-wrap{overflow-x:auto}
+.sc-table{border-collapse:collapse;width:100%;font-size:13px}
+.sc-table th,.sc-table td{padding:7px 3px;text-align:center;white-space:nowrap;border-bottom:1px solid rgba(255,255,255,.09)}
+.sc-table th:first-child,.sc-table td:first-child{white-space:normal;padding-right:8px}
+.sc-table th{color:#A3AEC2;font-weight:500}
+.sc-table th:first-child,.sc-table td:first-child{text-align:left}
+.sc{display:inline-block;min-width:26px;padding:2px 7px;border-radius:8px;font-weight:700;text-align:center}
+.sc.hi{background:rgba(75,219,122,.14);color:#4BDB7A}
+.sc.mid{background:rgba(250,192,49,.14);color:#FAC031}
+.sc.lo{background:rgba(255,138,92,.16);color:#FF9B7A}
+.sc.no{background:transparent;color:#A3AEC2;font-weight:500;border:1px dashed rgba(255,255,255,.18)}
+.sep{color:#A3AEC2;margin:0 3px}
+.sc-legend{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:10px;font-size:12px;color:#A3AEC2}
+.sc-legend .sc{min-width:0;padding:1px 7px;margin-right:4px}
 </style>""", unsafe_allow_html=True)
 
 
@@ -125,17 +140,26 @@ def render_card(iid: int, mentor_view: bool):
     with c1:
         dim = st.selectbox("Вопрос", list(core.DIMS), format_func=core.DIMS.get, key=f"dim_card_{iid}")
         st.altair_chart(line_chart(mine, dim), width="stretch")
-        rows = []
+        def val(side, pn, k):
+            s = mine[(mine.source == side) & (mine.period == pn)][k]
+            return None if s.empty or pd.isna(s.iloc[0]) else float(s.iloc[0])
+
+        def chip(v):  # цвет по уровню оценки: подсказка для чтения, а не порог сигнала
+            if v is None:
+                return '<span class="sc no">нет</span>'
+            return f'<span class="sc {"hi" if v >= 8 else "mid" if v >= 6 else "lo"}">{v:.0f}</span>'
+
+        head = "".join(f"<th>{p}</th>" for p in core.PERIODS)
+        body = ""
         for k, label in core.DIMS.items():
-            row = {"Вопрос (стажёр / наставник)": label}
-            for pn in range(1, core.N_PERIODS + 1):
-                a = mine[(mine.source == "intern") & (mine.period == pn)][k]
-                b = mine[(mine.source == "mentor") & (mine.period == pn)][k]
-                fa = "нет" if a.empty or pd.isna(a.iloc[0]) else f"{a.iloc[0]:.0f}"
-                fb = "нет" if b.empty or pd.isna(b.iloc[0]) else f"{b.iloc[0]:.0f}"
-                row[core.PERIODS[pn - 1]] = f"{fa} / {fb}"
-            rows.append(row)
-        st.dataframe(pd.DataFrame(rows).set_index("Вопрос (стажёр / наставник)"), width="stretch")
+            cells = "".join(f'<td>{chip(val("intern", pn, k))}<span class="sep">/</span>{chip(val("mentor", pn, k))}</td>' for pn in range(1, core.N_PERIODS + 1))
+            body += f"<tr><td>{label}</td>{cells}</tr>"
+        st.markdown(
+            f'<div class="sc-wrap"><table class="sc-table"><tr><th>Вопрос (стажёр / наставник)</th>{head}</tr>{body}</table></div>'
+            '<div class="sc-legend"><span><span class="sc hi">8–10</span>высокая</span><span><span class="sc mid">6–7</span>средняя</span>'
+            '<span><span class="sc lo">1–5</span>низкая</span><span><span class="sc no">нет</span>ответа нет</span></div>',
+            unsafe_allow_html=True,
+        )
     with c2:
         st.markdown("##### Сигналы")
         mine_sigs = [s for s in sigs if s["intern_id"] == iid]

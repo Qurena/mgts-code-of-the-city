@@ -7,7 +7,7 @@
 :root{
   /* тёмная панель по референсам: стеклянные карточки, градиент синий #008AE0 → фиолетовый #7B61FF (оба из палитры МГТС) */
   --bg:#0A0D16; --glow-a:rgba(0,138,224,.22); --glow-b:rgba(123,97,255,.20);
-  --surface:rgba(255,255,255,.045); --ink:#F2F5FA; --muted:#A3AEC2; --line:rgba(255,255,255,.10); --soft:rgba(255,255,255,.07);
+  --surface:rgba(255,255,255,.045); --ink:#F2F5FA; --muted:#A3AEC2; --line:rgba(255,255,255,.10); --soft:rgba(255,255,255,.07); --opt-bg:#161C2E;
   --brand:#5CC0FF; --brand-strong:linear-gradient(135deg,#008AE0 0%,#7B61FF 100%); --brand-ink:#FFFFFF; --grad:linear-gradient(135deg,#008AE0 0%,#7B61FF 100%);
   --intern:#5CC0FF; --mentor:#C9D2E3;
   --crit:#FF9B7A; --warn:#FAC031; --ok:#4BDB7A;
@@ -17,13 +17,13 @@
 }
 @media (prefers-color-scheme: light){:root:not([data-theme="dark"]){
   --bg:#EEF1F8; --glow-a:rgba(0,138,224,.16); --glow-b:rgba(123,97,255,.14);
-  --surface:rgba(255,255,255,.85); --ink:#1D2023; --muted:#566074; --line:rgba(29,32,35,.10); --soft:rgba(29,32,35,.05);
+  --surface:rgba(255,255,255,.85); --ink:#1D2023; --muted:#566074; --line:rgba(29,32,35,.10); --soft:rgba(29,32,35,.05); --opt-bg:#FFFFFF;
   --brand:#0072BD; --intern:#0072BD; --mentor:#1D2023;
   --crit:#B23509; --warn:#7A5600; --ok:#14783A;
   --crit-bg:#FFE5DC; --warn-bg:#FFF1CC; --ok-bg:#E3F9EA; --info-bg:#E6F4FC; color-scheme:light}}
 :root[data-theme="light"]{
   --bg:#EEF1F8; --glow-a:rgba(0,138,224,.16); --glow-b:rgba(123,97,255,.14);
-  --surface:rgba(255,255,255,.85); --ink:#1D2023; --muted:#566074; --line:rgba(29,32,35,.10); --soft:rgba(29,32,35,.05);
+  --surface:rgba(255,255,255,.85); --ink:#1D2023; --muted:#566074; --line:rgba(29,32,35,.10); --soft:rgba(29,32,35,.05); --opt-bg:#FFFFFF;
   --brand:#0072BD; --intern:#0072BD; --mentor:#1D2023;
   --crit:#B23509; --warn:#7A5600; --ok:#14783A;
   --crit-bg:#FFE5DC; --warn-bg:#FFF1CC; --ok-bg:#E3F9EA; --info-bg:#E6F4FC; color-scheme:light}
@@ -84,8 +84,19 @@ table{border-collapse:collapse;width:100%;font-size:13px}
 th,td{padding:6px 8px;text-align:center;border-bottom:1px solid var(--line)}
 th:first-child,td:first-child{text-align:left}
 th{color:var(--muted);font-weight:500}
-td.low{background:var(--crit-bg);color:var(--crit);font-weight:600}
-td.gap{color:var(--muted);background:var(--soft)}
+/* Выпадающие списки: фон пунктов должен быть сплошным, иначе браузер рисует белый фон под светлым текстом */
+select option,select optgroup{background:var(--opt-bg);color:var(--ink)}
+/* Баллы в таблице: цвет по уровню оценки. Это подсказка для чтения, а не порог сигнала */
+.sc{display:inline-block;min-width:22px;padding:2px 5px;border-radius:8px;font-weight:700;font-variant-numeric:tabular-nums;text-align:center;line-height:1.35}
+td.num{white-space:nowrap;padding-left:3px;padding-right:3px}
+.sc.hi{background:var(--ok-bg);color:var(--ok)}
+.sc.mid{background:var(--warn-bg);color:var(--warn)}
+.sc.lo{background:var(--crit-bg);color:var(--crit)}
+.sc.no{background:transparent;color:var(--muted);font-weight:500;border:1px dashed var(--line)}
+.sep{color:var(--muted);margin:0 1px;font-size:11px}
+td.sig{box-shadow:inset 0 0 0 1px var(--crit);border-radius:10px}
+.scale{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:12px;font-size:12px;color:var(--muted);align-items:center}
+.scale .sc{min-width:0;padding:1px 7px;margin-right:4px}
 .scroll{overflow-x:auto}
 .quote{border-left:3px solid var(--line);padding:2px 0 2px 12px;margin:8px 0}
 .quote mark{background:var(--warn-bg);color:var(--ink);padding:0 2px;border-radius:2px}
@@ -137,6 +148,7 @@ const C=[
 const st={role:'hr',tab:'overview',dim:'resources',intern:2,mentor:1,status:{},log:{}};
 const $=s=>document.querySelector(s), esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const U=id=>D.find(x=>x.id===id);
+const chip=v=>v===N?'<span class="sc no">нет</span>':`<span class="sc ${v>=8?'hi':v>=6?'mid':'lo'}">${v}</span>`;
 const median=a=>{const b=a.filter(x=>x!==N).sort((x,y)=>x-y);if(!b.length)return N;const h=b.length/2;return b.length%2?b[(b.length-1)/2]:(b[h-1]+b[h])/2};
 
 // Правила из стратегии (стр. 17): падение ≥2 к прошлой волне, расхождение ≥3 по одному вопросу, пропуск ответа, цитата с барьером.
@@ -203,7 +215,7 @@ function queue(){
 }
 function card(id,mentorView){
   const u=U(id),sigs=SIG.filter(s=>s.u===id),cm=C.filter(c=>c.u===id),log=st.log[id]||[];
-  const tbl=`<div class="scroll"><table><tr><th>Вопрос (стажёр / наставник)</th>${WAVES.map(w=>`<th>${w}</th>`).join('')}</tr>${Object.entries(DIMS).map(([k,l])=>`<tr><td>${l}</td>${WAVES.map((_,w)=>{const a=u.i[k][w],b=u.m[k][w];const low=a!==N&&b!==N&&Math.abs(a-b)>=3||(a!==N&&w>0&&u.i[k][w-1]!==N&&u.i[k][w-1]-a>=2);return `<td class="${a===N?'gap':low?'low':''} num">${a===N?'нет':a} / ${b===N?'нет':b}</td>`}).join('')}</tr>`).join('')}</table></div>`;
+  const tbl=`<div class="scroll"><table><tr><th>Вопрос (стажёр / наставник)</th>${WAVES.map(w=>`<th>${w}</th>`).join('')}</tr>${Object.entries(DIMS).map(([k,l])=>`<tr><td>${l}</td>${WAVES.map((_,w)=>{const a=u.i[k][w],b=u.m[k][w];const low=a!==N&&b!==N&&Math.abs(a-b)>=3||(a!==N&&w>0&&u.i[k][w-1]!==N&&u.i[k][w-1]-a>=2);return `<td class="${low?'sig':''} num">${chip(a)}<span class="sep">/</span>${chip(b)}</td>`}).join('')}</tr>`).join('')}</table></div><div class="scale"><span><span class="sc hi">8–10</span>высокая</span><span><span class="sc mid">6–7</span>средняя</span><span><span class="sc lo">1–5</span>низкая</span><span><span class="sc no">нет</span>ответа нет</span><span><span class="sc" style="box-shadow:inset 0 0 0 1px var(--crit)">&nbsp;</span>рамка: по ячейке есть сигнал</span></div>`;
   const comments=mentorView?`<div class="note">Тексты стажёра скрыты политикой доступа. Показывать ли их наставнику, решает HR (открытый вопрос).</div>`:
     (cm.length?cm.map(c=>{const ok=c.quote&&c.text.includes(c.quote);const t=ok?esc(c.text).replace(esc(c.quote),'<mark>'+esc(c.quote)+'</mark>'):esc(c.text);
       return `<div class="quote"><div class="who ${c.side}">${c.side==='i'?'Стажёр':'Наставник'} · ${WAVES[c.w-1]}</div><div>${t}</div><div style="margin-top:4px"><span class="pill p-data">Тема: ${TOPICS[c.topic]}</span> ${c.quote?'<span class="pill p-ok">цитата найдена в источнике</span>':''}</div></div>`}).join(''):'<div class="empty">Комментариев нет.</div>');
