@@ -8,7 +8,7 @@
   /* тёмная панель по референсам: стеклянные карточки, градиент синий #008AE0 → фиолетовый #7B61FF (оба из палитры МГТС) */
   --bg:#0A0D16; --glow-a:rgba(0,138,224,.22); --glow-b:rgba(123,97,255,.20);
   --surface:rgba(255,255,255,.045); --ink:#F2F5FA; --muted:#A3AEC2; --line:rgba(255,255,255,.10); --soft:rgba(255,255,255,.07); --opt-bg:#161C2E;
-  --brand:#5CC0FF; --brand-strong:linear-gradient(135deg,#008AE0 0%,#7B61FF 100%); --brand-ink:#FFFFFF; --grad:linear-gradient(135deg,#008AE0 0%,#7B61FF 100%);
+  --brand:#5CC0FF; --brand-strong:linear-gradient(135deg,#0068AD 0%,#5B3FD9 100%); --brand-ink:#FFFFFF; --grad:linear-gradient(135deg,#0068AD 0%,#5B3FD9 100%);
   --intern:#5CC0FF; --mentor:#C9D2E3;
   --crit:#FF9B7A; --warn:#FAC031; --ok:#4BDB7A;
   --crit-bg:rgba(255,138,92,.16); --warn-bg:rgba(250,192,49,.14); --ok-bg:rgba(75,219,122,.14); --info-bg:rgba(0,138,224,.18);
@@ -50,7 +50,14 @@ nav.tabs{display:inline-flex;gap:4px;padding:5px;margin-bottom:20px;max-width:10
 nav.tabs button{border:0;background:none;color:var(--muted);padding:9px 16px;font:600 14px var(--font-head);cursor:pointer;border-radius:12px;white-space:nowrap}
 nav.tabs button:hover{color:var(--ink)}
 nav.tabs button[aria-selected="true"]{color:var(--brand-ink);background:var(--grad)}
-.badge{display:inline-block;min-width:20px;padding:0 6px;border-radius:10px;background:var(--crit);color:#fff;font-size:11px;text-align:center;margin-left:6px}
+.badge{display:inline-block;min-width:22px;padding:1px 7px;border-radius:10px;background:var(--crit);color:var(--bg);font-size:13px;font-weight:700;text-align:center;margin-left:6px}
+nav.tabs button{min-height:44px}
+button,select{min-height:44px}
+.seg button{min-height:44px}
+.chartbox{overflow-x:auto}
+.chartbox svg{min-width:560px}
+.chk{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+.chk input{width:20px;height:20px;min-height:0;padding:0}
 .grid{display:grid;gap:16px}
 .g3{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
 .g2{grid-template-columns:minmax(0,3fr) minmax(0,2fr);align-items:start}
@@ -64,8 +71,8 @@ nav.tabs button[aria-selected="true"]{color:var(--brand-ink);background:var(--gr
 .head{display:flex;flex-wrap:wrap;gap:8px 16px;justify-content:space-between;align-items:center;margin-bottom:12px}
 .legend{display:flex;gap:14px;font-size:12px;color:var(--muted)}
 .legend i{display:inline-block;width:18px;height:3px;vertical-align:middle;margin-right:6px;border-radius:2px}
-svg text{fill:var(--muted);font:11px var(--font-body)}
-.pill{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px;white-space:nowrap}
+svg text{fill:var(--muted);font:13px var(--font-body)}
+.pill{display:inline-block;font-size:12px;font-weight:600;padding:2px 8px;border-radius:10px;white-space:nowrap}
 .p-content{background:var(--crit-bg);color:var(--crit)}
 .p-change{background:var(--warn-bg);color:var(--warn)}
 .p-div{background:var(--info-bg);color:var(--intern)}
@@ -93,7 +100,7 @@ td.num{white-space:nowrap;padding-left:3px;padding-right:3px}
 .sc.mid{background:var(--warn-bg);color:var(--warn)}
 .sc.lo{background:var(--crit-bg);color:var(--crit)}
 .sc.no{background:transparent;color:var(--muted);font-weight:500;border:1px dashed var(--line)}
-.sep{color:var(--muted);margin:0 1px;font-size:11px}
+.sep{color:var(--muted);margin:0 1px;font-size:12px}
 td.sig{box-shadow:inset 0 0 0 1px var(--crit);border-radius:10px}
 .scale{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:12px;font-size:12px;color:var(--muted);align-items:center}
 .scale .sc{min-width:0;padding:1px 7px;margin-right:4px}
@@ -119,8 +126,8 @@ td.sig{box-shadow:inset 0 0 0 1px var(--crit);border-radius:10px}
     <select id="mentorPick" aria-label="Чей наставник" hidden></select>
   </div>
 </header>
-<nav class="tabs" role="tablist" id="tabs"></nav>
-<main id="view"></main>
+<nav class="tabs" role="tablist" id="tabs" aria-label="Разделы"></nav>
+<main id="view" role="tabpanel"></main>
 </div>
 
 <script>
@@ -145,7 +152,11 @@ const C=[
 {id:'c6',u:4,w:5,side:'i',text:'За месяц так и не получилось обсудить работу с наставником.',topic:'feedback',quote:'не получилось обсудить работу',action:'Согласовать регулярную встречу'},
 {id:'c7',u:1,w:6,side:'i',text:'Всё устраивает, нравится команда.',topic:'other',quote:null,action:null}
 ];
-const st={role:'hr',tab:'overview',dim:'resources',intern:2,mentor:1,status:{},log:{}};
+const st={role:'hr',tab:'overview',dim:'resources',intern:2,mentor:1,status:{},log:{},showClosed:false};
+// Демо хранит статусы и действия только в этом браузере (localStorage). Серверного хранения в публичном макете нет.
+const KEY='pulse-demo-v1';
+try{const s=JSON.parse(localStorage.getItem(KEY)||'{}');if(s.status)st.status=s.status;if(s.log)st.log=s.log}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify({status:st.status,log:st.log}))}catch(e){}};
 const $=s=>document.querySelector(s), esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const U=id=>D.find(x=>x.id===id);
 const chip=v=>v===N?'<span class="sc no">нет</span>':`<span class="sc ${v>=8?'hi':v>=6?'mid':'lo'}">${v}</span>`;
@@ -182,7 +193,7 @@ function chart(series,opts={}){
     const last=s.v[5]!==N?5:s.v.map((v,i)=>v!==N?i:-1).filter(i=>i>=0).pop();
     if(last>=0)g+=`<text x="${x(last)+(last===5?-8:8)}" y="${y(s.v[last])-9}" text-anchor="${last===5?'end':'start'}" style="fill:var(--${s.c});font-weight:600">${s.v[last]}</text>`;
   });
-  return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="${opts.label||'График по волнам'}">${g}</svg>`;
+  return `<div class="chartbox"><svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="${opts.label||'График по волнам'}">${g}</svg></div>`;
 }
 const legend=()=>`<div class="legend"><span><i style="background:var(--intern)"></i>Стажёры</span><span><i style="background:none;height:0;border-top:3px dashed var(--mentor)"></i>Наставники</span></div>`;
 const dimSel=()=>`<select id="dimSel" aria-label="Вопрос">${Object.entries(DIMS).map(([k,v])=>`<option value="${k}" ${k===st.dim?'selected':''}>${v}</option>`).join('')}</select>`;
@@ -207,9 +218,9 @@ function overview(){
   </div>`;
 }
 function queue(){
-  const o=SIG;
-  return `<div class="card"><div class="head"><h2>Очередь внимания</h2><span style="color:var(--muted);font-size:13px">Приоритет: серьёзность барьера, повтор, срок без реакции. HR может менять статус.</span></div><div class="list">
-  ${o.map(s=>{const t=TYPE[s.type],u=U(s.u);return `<div class="row"><div><span class="pill ${t[0]}">${t[1]}</span> <span class="t">${esc(u.name)}</span> <span class="m">· волна «${WAVES[s.w]}»</span><div class="t" style="font-weight:500;margin-top:4px">${esc(s.title)}</div><div class="m">${esc(s.why)}</div></div>
+  const o=st.showClosed?SIG:open();
+  return `<div class="card"><div class="head"><h2>Очередь внимания · ${open().length} активных</h2><label class="chk"><input type="checkbox" id="showClosed" ${st.showClosed?'checked':''}>Показать закрытые (архив)</label></div><p class="m" style="color:var(--muted);font-size:13px;margin:0 0 8px">Порядок: фиксированный вес типа, затем более поздняя волна. Повтор и срок без реакции пока не учитываются.</p><div class="list">
+  ${o.length?'':'<div class="empty">Активных случаев нет.</div>'}${o.map(s=>{const t=TYPE[s.type],u=U(s.u);return `<div class="row"><div><span class="pill ${t[0]}">${t[1]}</span> <span class="t">${esc(u.name)}</span> <span class="m">· волна «${WAVES[s.w]}»</span><div class="t" style="font-weight:500;margin-top:4px">${esc(s.title)}</div><div class="m">${esc(s.why)}</div></div>
    <div class="ctrl"><select data-st="${s.key}" aria-label="Статус">${['Новый','В работе','Закрыт'].map(x=>`<option ${sstat(s.key)===x?'selected':''}>${x}</option>`).join('')}</select><button class="open" data-open="${s.u}">Карточка</button></div></div>`}).join('')}
   </div></div>`;
 }
@@ -224,7 +235,7 @@ function card(id,mentorView){
    ${chart([{v:u.i[st.dim],c:'intern',name:'Стажёр'},{v:u.m[st.dim],c:'mentor',name:'Наставник',dash:1}],{label:'Оценки стажёра и наставника'})}
    <h3 style="margin:14px 0 6px">Все ответы по волнам</h3>${tbl}</div>
    <div class="grid" style="align-content:start">
-    <div class="card"><h2>Сигналы</h2>${sigs.length?sigs.map(s=>`<div class="row"><div><span class="pill ${TYPE[s.type][0]}">${TYPE[s.type][1]}</span><div style="margin-top:4px">${esc(s.title)}</div><div class="m">${esc(s.why)}</div></div></div>`).join(''):'<div class="empty">Сигналов нет.</div>'}</div>
+    <div class="card"><h2>Сигналы</h2>${sigs.length?sigs.map(s=>mentorView&&s.type==='content'?`<div class="row"><div><span class="pill p-data">Комментарий</span><div style="margin-top:4px">Есть вопрос по теме «${esc(TOPICS[s.dim])}». Текст и цитата доступны только HR.</div></div></div>`:`<div class="row"><div><span class="pill ${TYPE[s.type][0]}">${TYPE[s.type][1]}</span><div style="margin-top:4px">${esc(s.title)}</div><div class="m">${esc(s.why)}</div></div></div>`).join(''):'<div class="empty">Сигналов нет.</div>'}</div>
     <div class="card"><h2>Комментарии</h2>${comments}</div>
     ${mentorView?'':`<div class="card"><h2>Действие HR</h2>${log.map(l=>`<div class="quote"><div class="who">${esc(l.owner)} · до ${esc(l.due)}</div>${esc(l.note)}</div>`).join('')}
      <form class="form" id="actForm"><input id="actOwner" placeholder="Ответственный" required><input id="actDue" type="date" required><textarea id="actNote" placeholder="Что делаем и почему" required></textarea><button class="btn" type="submit">Записать действие</button></form></div>`}
@@ -234,23 +245,35 @@ function render(){
   const hr=st.role==='hr';
   $('#mentorPick').hidden=hr;
   $('#roleHr').setAttribute('aria-pressed',hr);$('#roleMentor').setAttribute('aria-pressed',!hr);
-  const tabs=hr?[['overview','Обзор программы'],['queue','Очередь внимания'+`<span class="badge">${open().length}</span>`],['intern','Карточка стажёра']]:[['intern','Мой стажёр']];
-  $('#tabs').innerHTML=tabs.map(([k,l])=>`<button role="tab" data-tab="${k}" aria-selected="${st.tab===k}">${l}</button>`).join('');
-  const v=$('#view');
+  const tabs=hr?[['overview','Обзор программы'],['queue','Очередь внимания'+`<span class="badge" aria-label="${open().length} активных">${open().length}</span>`],['intern','Карточка стажёра']]:[['intern','Мой стажёр']];
+  if(!hr)st.tab='intern';
+  $('#tabs').innerHTML=tabs.map(([k,l])=>`<button role="tab" id="tab-${k}" aria-controls="view" data-tab="${k}" aria-selected="${st.tab===k}" tabindex="${st.tab===k?0:-1}">${l}</button>`).join('');
+  const v=$('#view');v.setAttribute('aria-labelledby','tab-'+st.tab);
+  const sc=$('#showClosed');
   if(!hr){st.tab='intern';v.innerHTML=card(st.mentor,true)}
   else v.innerHTML=st.tab==='overview'?overview():st.tab==='queue'?queue():card(st.intern,false);
   const ds=$('#dimSel');if(ds)ds.onchange=e=>{st.dim=e.target.value;render()};
-  v.querySelectorAll('[data-st]').forEach(s=>s.onchange=e=>{st.status[s.dataset.st]=e.target.value;render()});
-  v.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>{st.intern=+b.dataset.open;st.tab='intern';location.hash='intern';render()});
-  const bk=$('#back');if(bk)bk.onclick=()=>{st.tab='queue';location.hash='queue';render()};
-  const f=$('#actForm');if(f)f.onsubmit=e=>{e.preventDefault();(st.log[st.intern]=st.log[st.intern]||[]).push({owner:$('#actOwner').value,due:$('#actDue').value,note:$('#actNote').value});render()};
+  const sc2=$('#showClosed');if(sc2)sc2.onchange=e=>{st.showClosed=e.target.checked;render();const c=$('#showClosed');if(c)c.focus()};
+  v.querySelectorAll('[data-st]').forEach(s=>s.onchange=e=>{st.status[s.dataset.st]=e.target.value;save();render()});
+  v.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>{st.intern=+b.dataset.open;st.tab='intern';location.hash='intern/'+st.intern});
+  const bk=$('#back');if(bk)bk.onclick=()=>{st.tab='queue';location.hash='queue'};
+  const f=$('#actForm');if(f)f.onsubmit=e=>{e.preventDefault();const btn=f.querySelector('button');if(btn.disabled)return;btn.disabled=true;(st.log[st.intern]=st.log[st.intern]||[]).push({owner:$('#actOwner').value,due:$('#actDue').value,note:$('#actNote').value});save();render()};
 }
-$('#tabs').onclick=e=>{const b=e.target.closest('[data-tab]');if(!b)return;st.tab=b.dataset.tab;location.hash=st.tab;render()};
+$('#tabs').onclick=e=>{const b=e.target.closest('[data-tab]');if(!b)return;st.tab=b.dataset.tab;location.hash=st.tab==='intern'?'intern/'+st.intern:st.tab;render()};
+$('#tabs').onkeydown=e=>{
+  const bs=[...document.querySelectorAll('#tabs [role=tab]')],i=bs.indexOf(document.activeElement);if(i<0)return;
+  const n={ArrowRight:(i+1)%bs.length,ArrowLeft:(i-1+bs.length)%bs.length,Home:0,End:bs.length-1}[e.key];
+  if(n===undefined)return;e.preventDefault();bs[n].focus();bs[n].click();setTimeout(()=>{const t=document.querySelector('#tabs [aria-selected=true]');if(t)t.focus()},0);
+};
 $('#roleHr').onclick=()=>{st.role='hr';st.tab='overview';render()};
 $('#roleMentor').onclick=()=>{st.role='mentor';render()};
 $('#mentorPick').innerHTML=D.map(u=>`<option value="${u.id}">Наставник: ${esc(u.name)}</option>`).join('');
 $('#mentorPick').onchange=e=>{st.mentor=+e.target.value;render()};
-function fromHash(){const h=location.hash.slice(1);if(['overview','queue','intern'].includes(h))st.tab=h}
+function fromHash(){const m=location.hash.slice(1).split('/'),h=m[0];
+  if(['overview','queue','intern'].includes(h))st.tab=h;
+  if(h==='intern'&&m[1]&&U(+m[1])){st.intern=+m[1];if(st.role==='mentor')st.mentor=st.intern}
+  if(h==='mentor'){st.role='mentor';if(m[1]&&U(+m[1]))st.mentor=+m[1]}
+  if(h==='hr')st.role='hr'}
 window.addEventListener('hashchange',()=>{fromHash();render()});
 fromHash();render();
 </script>

@@ -7,7 +7,7 @@
   --side:rgba(255,255,255,.03); --card:rgba(255,255,255,.045); --card-hi:rgba(255,255,255,.075); --line:rgba(255,255,255,.09);
   --ink:#F2F5FA; --muted:#A3AEC2; --blue:#008AE0; --violet:#7B61FF; --blue-text:#5CC0FF; --on-grad:#FFFFFF;
   --warn:#FAC031; --hot:#FF8A5C; --ok:#4BDB7A;
-  --grad:linear-gradient(135deg,#008AE0 0%,#7B61FF 100%);
+  --grad:linear-gradient(135deg,#0068AD 0%,#5B3FD9 100%);
   --font-head:'MTS Wide','Segoe UI',system-ui,sans-serif; --font-body:'MTS Compact','Segoe UI',system-ui,sans-serif;
   color-scheme:dark;
 }
@@ -42,6 +42,18 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--blue-text);outline-
 .promo p{margin:0 0 12px;color:var(--muted);font-size:14px}
 .btn{display:inline-block;text-decoration:none;background:var(--grad);color:var(--on-grad);padding:10px 16px;border-radius:12px;font:700 14px var(--font-body)}
 .btn:hover{filter:brightness(1.1)}
+.btn,.side nav a{min-height:44px;align-items:center}
+.btn{display:inline-flex;justify-content:center;padding:12px 18px}
+.btn.ghost{background:var(--card-hi);color:var(--ink);border:1px solid var(--line)}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:20px}
+.tag{display:inline-block;font:700 12px var(--font-head);padding:3px 10px;border-radius:999px;background:var(--card-hi);border:1px solid var(--line);color:var(--warn);margin-left:8px;vertical-align:middle}
+.roles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0;padding:0;list-style:none}
+.roles li{padding:16px;border-radius:16px;background:var(--card-hi);border:1px solid var(--line);display:grid;gap:8px;align-content:start}
+.roles b{font-family:var(--font-head);font-size:16px}
+.roles span.d{color:var(--muted);font-size:14px}
+.roles .soon{color:var(--muted);font-size:14px}
+@media (max-width:760px){.roles{grid-template-columns:minmax(0,1fr)}}
 /* содержимое */
 main{min-width:0;display:grid;gap:20px}
 .top h1{font-size:clamp(26px,3.6vw,38px);font-weight:700;max-width:30ch}
@@ -114,7 +126,7 @@ footer{color:var(--muted);font-size:14px;padding:4px 8px 0}
   .side{position:sticky;top:8px;z-index:5;height:auto;min-height:0;flex-direction:row;align-items:center;padding:10px;border-radius:18px;overflow-x:auto;gap:10px}
   .brand span{display:none}.side nav{flex-direction:row;gap:2px}.side nav a{padding:9px 12px;white-space:nowrap}.promo{display:none}
 }
-@media (max-width:560px){.c3{grid-column:span 12}.flow,.times{grid-template-columns:minmax(0,1fr)}.team li{grid-template-columns:44px minmax(0,1fr)}.team li>div:last-child{grid-column:1/-1}.side nav a span{display:none}}
+@media (max-width:560px){.c3{grid-column:span 12}.flow,.times{grid-template-columns:minmax(0,1fr)}.team li{grid-template-columns:44px minmax(0,1fr)}.team li>div:last-child{grid-column:1/-1}.side nav a span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}.side nav a{min-width:44px;justify-content:center}}
 </style>
 
 </head><body><div class="app">
@@ -135,6 +147,18 @@ footer{color:var(--muted);font-size:14px;padding:4px 8px 0}
   <section id="overview" class="top">
     <h1>Дашборд для анализа обратной связи стажёров МГТС</h1>
     <p>Мы делаем программу, которая собирает ежемесячные анкеты стажёров и наставников и показывает HR-специалисту, какие случаи нужно проверить. Команда студентов МФТИ и Сколково. Кейс-чемпионат «Код города», направление «ИИ в бизнес-процессах».</p>
+    <div class="cta"><a class="btn" href="#cabinets">Открыть кабинеты</a><a class="btn ghost" href="dashboard-prototype.html#overview">Открыть демо<span class="tag">Учебные данные</span></a></div>
+  </section>
+
+  <section id="cabinets" class="card" aria-labelledby="cabh">
+    <h2 id="cabh">Три кабинета<span class="tag">Учебные данные</span></h2>
+    <p class="sub">Выберите роль. Первый экран каждой роли отвечает на вопрос «что мне делать сейчас?». Все имена и оценки выдуманы.</p>
+    <ul class="roles">
+      <li><b>Стажёр</b><span class="d">Ближайший шаг, цель этапа, критерий готовности и срок.</span><span class="soon">Кабинет в разработке</span></li>
+      <li><b>Наставник</b><span class="d">Кому нужен разбор, какие работы и планы ждут решения. Закрытые комментарии стажёров не показываются.</span><a class="btn ghost" href="dashboard-prototype.html#mentor/1">Открыть демо наставника</a></li>
+      <li><b>HR</b><span class="d">Срочные случаи, просроченные действия, покрытие волны.</span><a class="btn ghost" href="dashboard-prototype.html#queue">Открыть демо HR</a></li>
+    </ul>
+    <p class="note">Демо работает в вашем браузере и ничего не отправляет на сервер. Рабочие кабинеты со входом и серверным хранением в разработке.</p>
   </section>
 
   <div class="grid">
