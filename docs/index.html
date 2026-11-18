@@ -48,6 +48,15 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--blue-text);outline-
 .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:20px}
 .tag{display:inline-block;font:700 12px var(--font-head);padding:3px 10px;border-radius:999px;background:var(--card-hi);border:1px solid var(--line);color:var(--warn);margin-left:8px;vertical-align:middle}
+main>.card{grid-column:auto}
+body{overflow-x:clip}
+@media (max-width:420px){.sig li{grid-template-columns:auto minmax(0,1fr)}.sig li>.pill{grid-column:1/-1;justify-self:start;white-space:normal}.card{padding:18px}}
+.js .rv{opacity:0;transform:translateY(32px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1);transition-delay:var(--d,0ms);will-change:opacity,transform}
+.js .rv.l{transform:translateX(-32px)}
+.js .rv.r{transform:translateX(32px)}
+.js .rv.z{transform:scale(.94)}
+.js .rv.in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){.js .rv{opacity:1;transform:none;transition:none}}
 .roles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0;padding:0;list-style:none}
 .roles li{padding:16px;border-radius:16px;background:var(--card-hi);border:1px solid var(--line);display:grid;gap:8px;align-content:start}
 .roles b{font-family:var(--font-head);font-size:16px}
@@ -237,7 +246,7 @@ footer{color:var(--muted);font-size:14px;padding:4px 8px 0}
         <li><span class="av">АД</span><div><b>Андрей Деев</b></div><div class="r">План работы, экономика решения<span class="bio" data-bio="andrey"></span></div></li>
         <li><span class="av">ДЙ</span><div><b>Дарья Йылдыз</b></div><div class="r">Структура данных, правила сигналов<span class="bio" data-bio="dasha"></span></div></li>
         <li><span class="av">ГЗ</span><div><b>Глеб Злобин</b></div><div class="r">Текст заявки, подготовка защиты<span class="bio" data-bio="gleb"></span></div></li>
-        <li><span class="av">МБ</span><div><b>Михаил Бруевич</b></div><div class="r">Дизайн дашборда, запуск программы<span class="bio" data-bio="misha">Разработка и дизайн интерфейса. Капитан команды-победителя «Клинического компаса» (1 из 83). Full-stack прототипы, Docker</span></div></li>
+        <li><span class="av">МБ</span><div><b>Михаил Бруевич</b></div><div class="r">Дизайн дашборда, запуск программы<span class="bio" data-bio="misha"></span></div></li>
       </ul>
       <!-- РЕГАЛИИ: впишите по одной строке в span.bio каждого участника (опыт, стек, достижения). Пустые блоки скрыты. -->
     </section>
@@ -276,6 +285,23 @@ footer{color:var(--muted);font-size:14px;padding:4px 8px 0}
     var a=(0.18+v*0.075).toFixed(2);
     return'<span class="c'+(v<=4?' low':'')+'" style="background:rgba(0,138,224,'+a+')">'+v+'</span>';}).join('');});
   document.getElementById('heat').innerHTML=h;
+
+  // Анимация появления при прокрутке: блоки выезжают снизу и с боков, элементы списков идут по очереди
+  (function(){
+    if(!('IntersectionObserver' in window)||window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+    document.documentElement.classList.add('js');
+    var groups=[['.top h1,.top p,.top .cta',''],['.kpi','z'],['main .card:not(.kpi)',''],['.points li','l'],['.sig li','r'],['.flow li','z'],['.roles li','z'],['.times li',''],['.team li','']];
+    var seen=[];
+    groups.forEach(function(g){var els=[].slice.call(document.querySelectorAll(g[0]));els.forEach(function(el,i){
+      if(seen.indexOf(el)>-1)return;seen.push(el);
+      el.classList.add('rv');if(g[1])el.classList.add(g[1]);
+      el.style.setProperty('--d',(g[0].indexOf('li')>-1||g[0]==='.kpi'||g[0].indexOf('.top')===0?(i%6)*90:0)+'ms');
+    });});
+    var io2=new IntersectionObserver(function(es){es.forEach(function(e){
+      if(e.isIntersecting||e.boundingClientRect.top<0){e.target.classList.add('in');io2.unobserve(e.target);}
+    });},{threshold:.12,rootMargin:'0px 0px -6% 0px'});
+    seen.forEach(function(el){io2.observe(el);});
+  })();
 
   // Подсветка пункта меню по прокрутке
   var links=[].slice.call(document.querySelectorAll('.side nav a'));
