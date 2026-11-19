@@ -94,7 +94,7 @@ server {
 }
 EOF
 ln -sf /etc/nginx/sites-available/mgts /etc/nginx/sites-enabled/mgts
-rm -f /etc/nginx/sites-enabled/default
+rm -f /etc/nginx/sites-enabled/default /etc/nginx/sites-enabled/webdock  # заглушка образа Webdock, файл остаётся в sites-available
 nginx -t
 
 # данные: пример в формате вебинара (две таблицы Excel из prototype/mgts/data) загружается один раз
