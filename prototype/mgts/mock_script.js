@@ -102,8 +102,13 @@ function render(){
   $('#roleHr').setAttribute('aria-pressed',hr);$('#roleMentor').setAttribute('aria-pressed',!hr);
   const tabs=hr?[['overview','Обзор программы'],['queue','Очередь внимания'+`<span class="badge" aria-label="${open().length} активных">${open().length}</span>`],['intern','Карточка стажёра']]:[['intern','Мой стажёр']];
   if(!hr)st.tab='intern';
-  $('#tabs').innerHTML=tabs.map(([k,l])=>`<button role="tab" id="tab-${k}" aria-controls="view" data-tab="${k}" aria-selected="${st.tab===k}" tabindex="${st.tab===k?0:-1}">${l}</button>`).join('');
+  // вкладки пересобираются только при смене набора или счётчика, иначе подсветка переключается плавно
+  const tb=$('#tabs'),sig=tabs.map(t=>t[0]).join()+'|'+open().length;
+  if(tb.dataset.sig!==sig){tb.innerHTML=tabs.map(([k,l])=>`<button role="tab" id="tab-${k}" aria-controls="view" data-tab="${k}" aria-selected="${st.tab===k}" tabindex="${st.tab===k?0:-1}">${l}</button>`).join('');tb.dataset.sig=sig}
+  else tb.querySelectorAll('[role=tab]').forEach(b=>{const on=b.dataset.tab===st.tab;b.setAttribute('aria-selected',on);b.tabIndex=on?0:-1});
   const v=$('#view');v.setAttribute('aria-labelledby','tab-'+st.tab);
+  const fxKey=st.role+st.tab+(st.tab==='intern'?(st.role==='hr'?st.intern:st.mentor):'');
+  if(st.fx!==fxKey){v.classList.remove('fx');void v.offsetWidth;v.classList.add('fx');st.fx=fxKey}
   if(!hr){st.tab='intern';v.innerHTML=card(st.mentor,true)}
   else v.innerHTML=st.tab==='overview'?overview():st.tab==='queue'?queue():card(st.intern,false);
   const ds=$('#itemSel');if(ds)ds.onchange=e=>{st.item=e.target.value;render()};

@@ -31,14 +31,17 @@ a{color:inherit}
 a:focus-visible,button:focus-visible{outline:2px solid var(--blue-text);outline-offset:3px;border-radius:8px}
 .app{display:grid;grid-template-columns:248px minmax(0,1fr);gap:20px;max-width:1360px;margin:0 auto;padding:20px max(16px,env(safe-area-inset-right,0px)) 40px max(16px,env(safe-area-inset-left,0px))}
 /* боковое меню */
-.side{position:sticky;top:20px;align-self:start;height:calc(100vh - 40px);min-height:480px;display:flex;flex-direction:column;gap:20px;padding:20px 14px;background:var(--side);border:1px solid var(--line);border-radius:24px;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.side{position:sticky;top:20px;align-self:start;height:calc(100vh - 40px);min-height:480px;display:flex;flex-direction:column;gap:20px;padding:20px 14px;background:var(--side);border:1px solid var(--line);border-radius:24px}
 .brand{display:flex;align-items:center;gap:10px;padding:0 8px;font:700 18px var(--font-head)}
 .brand i{width:30px;height:30px;border-radius:9px;background:var(--grad);display:grid;place-items:center;font:700 14px var(--font-head);font-style:normal;color:var(--on-grad)}
 .side nav{display:flex;flex-direction:column;gap:4px}
-.side nav a{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:12px;text-decoration:none;color:var(--muted);font-weight:500}
+.side nav a{position:relative;display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:12px;text-decoration:none;color:var(--muted);font-weight:500;transition:color .3s ease,background-color .3s ease}
+.side nav a::before{content:"";position:absolute;inset:0;border-radius:12px;background:var(--grad);opacity:0;transition:opacity .35s ease}
+.side nav a>*{position:relative}
 .side nav a svg{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .side nav a:hover{background:var(--card);color:var(--ink)}
-.side nav a.on{background:var(--grad);color:var(--on-grad)}
+.side nav a.on{color:var(--on-grad)}
+.side nav a.on::before{opacity:1}
 .promo{margin-top:auto;padding:16px;border-radius:18px;background:var(--card);border:1px solid var(--line)}
 .promo b{font-family:var(--font-head);display:block;margin-bottom:4px}
 .promo p{margin:0 0 12px;color:var(--muted);font-size:14px}
@@ -53,7 +56,8 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--blue-text);outline-
 main>.card{grid-column:auto}
 body{overflow-x:clip}
 @media (max-width:420px){.sig li{grid-template-columns:auto minmax(0,1fr)}.sig li>.pill{grid-column:1/-1;justify-self:start;white-space:normal}.card{padding:18px}}
-.js .rv{opacity:0;transform:translateY(32px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1);transition-delay:var(--d,0ms);will-change:opacity,transform}
+.js .rv{opacity:0;transform:translateY(20px);transition:opacity .55s cubic-bezier(.22,.8,.3,1),transform .55s cubic-bezier(.22,.8,.3,1);transition-delay:var(--d,0ms);will-change:opacity,transform}
+.js .rv.in{will-change:auto}
 .js .rv.l{transform:translateX(-32px)}
 .js .rv.r{transform:translateX(32px)}
 .js .rv.z{transform:scale(.94)}
@@ -70,7 +74,7 @@ main{min-width:0;display:grid;gap:20px}
 .top h1{font-size:clamp(26px,3.6vw,38px);font-weight:700;max-width:30ch}
 .top p{margin:10px 0 0;color:var(--muted);max-width:90ch;font-size:17px}
 .grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:16px}
-.card{grid-column:span 12;min-width:0;padding:22px;background:var(--card);border:1px solid var(--line);border-radius:22px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.card{grid-column:span 12;min-width:0;padding:22px;background:var(--card);border:1px solid var(--line);border-radius:22px}
 .c3{grid-column:span 3}.c4{grid-column:span 4}.c5{grid-column:span 5}.c6{grid-column:span 6}.c7{grid-column:span 7}.c8{grid-column:span 8}
 .card h2{font-size:19px;margin-bottom:6px}
 .sub{color:var(--muted);font-size:15px;margin:0 0 16px}
@@ -198,7 +202,6 @@ footer{color:var(--muted);font-size:14px;padding:4px 8px 0}
     <a href="#architecture"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="6" height="5" rx="1.5"/><rect x="15" y="4" width="6" height="5" rx="1.5"/><rect x="9" y="15" width="6" height="5" rx="1.5"/><path d="M6 9v3h12V9M12 12v3"/></svg><span>Схема</span></a>
     <a href="#example"><svg viewBox="0 0 24 24"><path d="M3 20h18M6 16l4-5 3 3 5-8"/></svg><span>Пример</span></a>
     <a href="#data"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M4 9h16M4 15h16M10 3v18"/></svg><span>Данные</span></a>
-    <a href="#demo"><svg viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z"/></svg><span>Защита</span></a>
     <a href="#interviews"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></svg><span>Интервью</span></a>
     <a href="#team"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6M16 5a3.5 3.5 0 010 6.5M18 14.5c2 .7 3.5 2.6 3.5 5.5"/></svg><span>Команда</span></a>
   </nav>
@@ -224,10 +227,9 @@ footer{color:var(--muted);font-size:14px;padding:4px 8px 0}
   </section>
 
   <div class="grid">
-    <div class="card c3 kpi hi"><div class="l"><span class="dot"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span>Стажировка</div><div class="v">6 месяцев</div><div class="s">Каждый месяц есть анкета</div></div>
-    <div class="card c3 kpi"><div class="l"><span class="dot"><svg viewBox="0 0 24 24"><circle cx="8" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M2 20c0-3 2.7-5 6-5s6 2 6 5M15 15c3 0 6 1.6 6 4.5"/></svg></span>Стороны опроса</div><div class="v">2</div><div class="s">Стажёр и наставник, отдельно</div></div>
-    <div class="card c3 kpi"><div class="l"><span class="dot"><svg viewBox="0 0 24 24"><path d="M6 17V11a6 6 0 0112 0v6l2 2H4zM10 21h4"/></svg></span>Вида сигнала</div><div class="v">5</div><div class="s">Изменение, расхождение, стабильно низко, комментарий, нет данных</div></div>
-    <div class="card c3 kpi"><div class="l"><span class="dot"><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 3h6"/></svg></span>Показ на защите</div><div class="v">90 секунд</div><div class="s">На живой системе</div></div>
+    <div class="card c4 kpi hi"><div class="l"><span class="dot"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span>Стажировка</div><div class="v">6 месяцев</div><div class="s">Каждый месяц есть анкета</div></div>
+    <div class="card c4 kpi"><div class="l"><span class="dot"><svg viewBox="0 0 24 24"><circle cx="8" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M2 20c0-3 2.7-5 6-5s6 2 6 5M15 15c3 0 6 1.6 6 4.5"/></svg></span>Стороны опроса</div><div class="v">2</div><div class="s">Стажёр и наставник, отдельно</div></div>
+    <div class="card c4 kpi"><div class="l"><span class="dot"><svg viewBox="0 0 24 24"><path d="M6 17V11a6 6 0 0112 0v6l2 2H4zM10 21h4"/></svg></span>Вида сигнала</div><div class="v">5</div><div class="s">Изменение, расхождение, стабильно низко, комментарий, нет данных</div></div>
 
     <section id="task" class="card c5">
       <h2>Задача</h2>
@@ -275,16 +277,34 @@ footer{color:var(--muted);font-size:14px;padding:4px 8px 0}
           <li><b>Комментарии:</b> есть у обеих сторон, необязательные.</li>
         </ul></div>
       </div>
-      <h3 style="font:700 15px var(--font-head);margin:6px 0 0">Так выглядят две таблицы в нашем примере</h3>
-      <p class="note" style="margin:4px 0 0">Таблица 1. Ответы стажёров (шкала 1–10)</p><div class="dtw"><table class="dt"><tr><th>ID стажёра</th><th>Дата ответа</th><th>Насколько вам интересны задачи (1-10)</th><th>Насколько понятны задачи (1-10)</th><th>Получаете ли вы поддержку наставника (1-10)</th><th>Хватает ли доступов и инструментов (1-10)</th><th>Что мешает работать?</th></tr><tr><td>С-01</td><td>2026-06-18</td><td>10</td><td>8</td><td>10</td><td>10</td><td></td></tr><tr><td>С-01</td><td>2026-07-18</td><td>10</td><td>8</td><td>8</td><td>10</td><td></td></tr><tr><td>С-01</td><td>2026-08-18</td><td>8</td><td>8</td><td>10</td><td>10</td><td></td></tr></table></div>
-      <p class="note" style="margin:0">Таблица 2. Ответы наставников (шкала 1–10)</p><div class="dtw"><table class="dt"><tr><th>ID наставника</th><th>Дата ответа</th><th>Как стажёр справляется с задачами (1-10)</th><th>Насколько оперативно (1-10)</th><th>Насколько самостоятельно (1-10)</th><th>Комментарий наставника</th></tr><tr><td>Н-01</td><td>2026-06-18</td><td>8</td><td>8</td><td>7</td><td></td></tr><tr><td>Н-01</td><td>2026-07-18</td><td>8</td><td>8</td><td>8</td><td></td></tr><tr><td>Н-01</td><td>2026-08-18</td><td>9</td><td>8</td><td>8</td><td></td></tr></table></div>
+      <h3 style="font:700 15px var(--font-head);margin:6px 0 0">Как мы видим устройство обратной связи</h3>
+      <p class="sub" style="margin:4px 0 8px">Каждая строка таблицы равна одному ответу одного человека за один месяц. Таблиц две, колонки в них такие.</p>
+      <div class="two">
+        <div><h3>Таблица ответов стажёров</h3><ul>
+          <li><b>ID стажёра</b>: анонимный номер, например С-01.</li>
+          <li><b>Дата ответа</b>: ГГГГ-ММ-ДД, по ней определяется месяц.</li>
+          <li><b>Насколько вам интересны задачи</b>: оценка 1–10.</li>
+          <li><b>Насколько понятны задачи</b>: оценка 1–10.</li>
+          <li><b>Получаете ли вы поддержку наставника</b>: оценка 1–10.</li>
+          <li><b>Хватает ли доступов и инструментов</b>: оценка 1–10.</li>
+          <li><b>Что мешает работать?</b>: комментарий, можно оставить пустым.</li>
+        </ul></div>
+        <div><h3>Таблица ответов наставников</h3><ul>
+          <li><b>ID наставника</b>: анонимный номер, например Н-01.</li>
+          <li><b>Дата ответа</b>: ГГГГ-ММ-ДД.</li>
+          <li><b>Как стажёр справляется с задачами</b>: оценка 1–10.</li>
+          <li><b>Насколько оперативно</b>: оценка 1–10.</li>
+          <li><b>Насколько самостоятельно</b>: оценка 1–10.</li>
+          <li><b>Комментарий наставника</b>: можно оставить пустым.</li>
+        </ul></div>
+      </div>
+      <p class="sub" style="margin:0 0 12px">Стажёр и наставник образуют пару по числу в ID (С-03 и Н-03). Вопросы сторон сравниваются парами: понятность задач с оценкой «справляется с задачами», интерес к задачам с «самостоятельно». Остальные вопросы показываются отдельно.</p>
       <ul class="points">
         <li><span class="dot"><svg viewBox="0 0 24 24"><path d="M4 8h16M4 16h16M9 4l-4 4 4 4M15 12l4 4-4 4"/></svg></span><div><b>Пара по ID</b><span>Если колонки с парой нет, наставник Н-03 сопоставляется стажёру С-03 по числу в ID. Такие пары программа выводит в отчёт на проверку.</span></div></li>
         <li><span class="dot"><svg viewBox="0 0 24 24"><path d="M3 20h18M6 16l4-5 3 3 5-8"/></svg></span><div><b>Если шкалы окажутся другими</b><span>Шкалы 1–5, 1–7 и любые другие приводятся к 1–10. Исходные значения остаются в базе.</span></div></li>
         <li><span class="dot"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></svg></span><div><b>Пропуск остаётся пропуском</b><span>Пустая ячейка не превращается в ноль. Повторная загрузка файла не создаёт дублей.</span></div></li>
         <li><span class="dot"><svg viewBox="0 0 24 24"><path d="M5 12l4 4 10-10"/></svg></span><div><b>Разные вопросы у сторон</b><span>Вопросы стажёра и наставника сравниваются по парам, которые мы задаём в одном файле. Вопросы без пары показываются отдельно.</span></div></li>
       </ul>
-      <p class="note">Готовые шаблоны двух таблиц и файл сопоставления колонок лежат в папке <code>prototype/mgts</code>. На финале мы смотрим выданные файлы командой <code>inspect_data.py</code>, правим названия колонок и шкалу и загружаем данные. По плану это занимает 30–40 минут.</p>
     </section>
 
     <section id="solution" class="card">
@@ -354,18 +374,6 @@ footer{color:var(--muted);font-size:14px;padding:4px 8px 0}
       <p class="sub">Вопрос «Как стажёр справляется с задачами» у пяти выдуманных наставников, из 10.</p>
       <div id="heat" class="heat" role="table" aria-label="Оценки стажёров по месяцам"></div>
       <div class="hl"><span><i style="background:var(--g-bg);border:1px solid var(--g-bd)"></i>хорошо: 8–10 из 10</span><span><i style="background:var(--m-bg);border:1px solid var(--m-bd)"></i>средне: 6–7</span><span><i style="background:var(--r-bg);border:1px solid var(--r-bd)"></i>плохо: 5 и ниже</span></div>
-    </section>
-
-    <section id="demo" class="card">
-      <h2>Что мы покажем на защите</h2>
-      <p class="sub">Показ займёт около 90 секунд и пройдёт на живой системе.</p>
-      <div class="seg" aria-hidden="true" style="grid-template-columns:20fr 25fr 20fr 25fr"><span style="flex:20"></span><span style="flex:25"></span><span style="flex:20"></span><span style="flex:25"></span></div>
-      <ul class="times">
-        <li><b>0–20 с</b><span>Заполняем анкету вживую в том формате, в каком выдали данные. Новый ответ появляется на дашборде.</span></li>
-        <li><b>20–45 с</b><span>Открываем сигнал о недостающем доступе: исходный комментарий и изменение оценок.</span></li>
-        <li><b>45–65 с</b><span>Рядом показываем оценку наставника.</span></li>
-        <li><b>65–90 с</b><span>Записываем ответственного и срок действия.</span></li>
-      </ul>
     </section>
 
     <section id="interviews" class="card" aria-labelledby="ivh">
@@ -514,9 +522,11 @@ footer{color:var(--muted);font-size:14px;padding:4px 8px 0}
 
   // Подсветка пункта меню по прокрутке
   var links=[].slice.call(document.querySelectorAll('.side nav a'));
-  links.forEach(function(a){a.addEventListener('click',function(){links.forEach(function(b){b.classList.toggle('on',b===a)});});});
+  var lock=false,lt=0;function unlock(){lock=false;}
+  links.forEach(function(a){a.addEventListener('click',function(){lock=true;clearTimeout(lt);lt=setTimeout(unlock,1400);links.forEach(function(b){b.classList.toggle('on',b===a)});});});
+  window.addEventListener('scrollend',function(){clearTimeout(lt);lt=setTimeout(unlock,120);});
   if('IntersectionObserver' in window){
-    var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){links.forEach(function(a){a.classList.toggle('on',a.getAttribute('href')==='#'+e.target.id)});}});},{rootMargin:'-30% 0px -60% 0px'});
+    var io=new IntersectionObserver(function(es){if(lock)return;es.forEach(function(e){if(e.isIntersecting){links.forEach(function(a){a.classList.toggle('on',a.getAttribute('href')==='#'+e.target.id)});}});},{rootMargin:'-30% 0px -60% 0px'});
     links.forEach(function(a){var t=document.querySelector(a.getAttribute('href'));if(t)io.observe(t);});
   }
 })();
