@@ -1,0 +1,28 @@
+{
+  "_help": "Две таблицы Excel, анонимные ID, колонки с парой нет: наставник сопоставляется стажёру по номеру в ID (auto_pair).",
+  "sources": [
+    {
+      "name": "intern", "side": "intern", "file": "data/web_interns.xlsx",
+      "columns": {"person": "ID стажёра", "timestamp": "Дата ответа"},
+      "period": {"column": "Дата ответа", "from_date": {"start": "2026-06-01"}, "default": "last"},
+      "scores": [
+        {"column": "Насколько вам интересны задачи (1-5)", "dimension": "interest", "scale": [1, 5]},
+        {"column": "Насколько понятны задачи (1-5)", "dimension": "clarity", "scale": [1, 5]},
+        {"column": "Получаете ли вы поддержку наставника (1-5)", "dimension": "support", "scale": [1, 5]},
+        {"column": "Хватает ли доступов и инструментов (1-5)", "dimension": "access", "scale": [1, 5]}
+      ],
+      "comments": ["Что мешает работать?"]
+    },
+    {
+      "name": "mentor", "side": "mentor", "file": "data/web_mentors.xlsx",
+      "columns": {"person": "ID наставника", "timestamp": "Дата ответа"},
+      "period": {"column": "Дата ответа", "from_date": {"start": "2026-06-01"}, "default": "last"},
+      "scores": [
+        {"column": "Как стажёр справляется с задачами (1-10)", "dimension": "performance"},
+        {"column": "Насколько оперативно (1-10)", "dimension": "speed"},
+        {"column": "Насколько самостоятельно (1-10)", "dimension": "independence"}
+      ],
+      "comments": ["Комментарий"]
+    }
+  ]
+}

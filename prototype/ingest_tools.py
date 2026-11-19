@@ -245,6 +245,27 @@ def _response_id(spec: dict, row: dict, person: str, period: int | None, idx: in
     return "imp-" + hashlib.sha1(base.encode()).hexdigest()[:14]
 
 
+def auto_pair(mentor: str, people: dict, notes: list[str]) -> str | None:
+    """Пара наставник-стажёр, когда в данных нет колонки с парой и нет списка pairs (кейс: один наставник на одного стажёра, анонимные ID).
+    1) наставник уже записан у какого-то стажёра; 2) в ID совпадает число («Н-03» и «С-03»); 3) по порядку появления среди стажёров без наставника.
+    Пункты 2 и 3 записываются в отчёт: пару нужно проверить глазами."""
+    for k, v in people.items():
+        if v["mentor"] and norm_key(v["mentor"]) == norm_key(mentor):
+            return k
+    free = {k: v for k, v in people.items() if not v["mentor"]}
+    num = re.findall(r"\d+", mentor)
+    if num:
+        hit = [k for k, v in free.items() if re.findall(r"\d+", v["name"]) == num]
+        if len(hit) == 1:
+            notes.append(f"наставник «{mentor}» сопоставлен стажёру «{people[hit[0]]['name']}» по номеру в ID")
+            return hit[0]
+    if free:
+        k = min(free, key=lambda x: free[x]["id"])
+        notes.append(f"наставник «{mentor}» сопоставлен стажёру «{people[k]['name']}» по порядку появления (в данных нет пары)")
+        return k
+    return None
+
+
 def _next_id(people: dict) -> int:
     return max([p["id"] for p in people.values()], default=0) + 1
 
@@ -302,6 +323,8 @@ def build_payloads(mapping: dict, base: Path | None = None, known: dict | None =
                 else:
                     target = pairs.get(norm_key(person))
                     intern_key = resolve_name(target, {k: v["name"] for k, v in people.items()}, aliases, report["notes"]) if target else None
+                    if intern_key is None and mapping.get("auto_pair", True):
+                        intern_key = auto_pair(person, people, report["notes"])
                 if intern_key is None:
                     report["warnings"].append(f"[{spec['name']}] не найден стажёр для наставника «{person}» (укажите колонку other или pairs)")
                     report["skipped"] += 1

@@ -15,8 +15,8 @@ import seed
 
 st.set_page_config(page_title="Пульс стажёров", page_icon="📈", layout="wide")
 BLUE, GRAPHITE = "#5CC0FF", "#C9D2E3"  # стажёр: голубая сплошная линия, наставник: светлая пунктирная (тёмная тема)
-SCREENS = ["Обзор программы", "Очередь внимания", "Карточка стажёра"]
-BADGE = {"content": ("red", "Комментарий"), "change": ("orange", "Изменение"), "divergence": ("blue", "Расхождение"), "data": ("gray", "Нет данных")}
+SCREENS = ["Обзор программы", "Очередь внимания", "Карточка стажёра", "Сигналы"]
+BADGE = {t: (v["color"], v["name"]) for t, v in core.SIGNAL_INFO.items()}
 
 st.markdown("""<style>
 .stApp{background-image:radial-gradient(900px 500px at 85% -10%,rgba(123,97,255,.20),transparent 60%),radial-gradient(800px 500px at 10% 0%,rgba(0,138,224,.22),transparent 60%);background-attachment:fixed}
@@ -63,11 +63,12 @@ def snapshot(con):
     core.analyze_pending(con)  # разбор текста после приёма: приёмник отвечает сразу
     df, people = core.load_answers(con), core.participants(con)
     ana = core.load_analysis(con)
-    return df, people, ana, core.compute_signals(df, people, ana)
+    th = core.get_thresholds(con)  # пороги: из survey.json или то, что HR поставил на экране «Сигналы»
+    return df, people, ana, core.compute_signals(df, people, ana, th), th
 
 
 con = get_con()
-df, people, ana, sigs = snapshot(con)
+df, people, ana, sigs, th = snapshot(con)
 if people.empty:
     st.title("Пульс стажёров")
     st.info("В базе пока нет участников. Загрузите данные: `python import_data.py mapping.json` "
@@ -119,6 +120,33 @@ def line_chart(sub: pd.DataFrame, value: str, height=300):
     return (base.mark_line(strokeWidth=2.5, invalid=None) + base.mark_point(filled=True, size=70)).properties(height=height)
 
 
+def chip(v, asked=True):
+    """Цвет по уровню оценки: подсказка для чтения, а не порог сигнала."""
+    if not asked:
+        return '<span class="sep">—</span>'  # такого вопроса нет в анкете этой стороны
+    if v is None:
+        return '<span class="sc no">нет</span>'
+    return f'<span class="sc {"hi" if v >= 8 else "mid" if v >= 6 else "lo"}">{v:.0f}</span>'
+
+
+ARROW_COLOR = {"↑": "#4BDB7A", "↓": "#FF9B7A", "→": "#A3AEC2", "—": "#A3AEC2"}
+
+
+def arrow(t):
+    return f'<span style="color:{ARROW_COLOR[t]};font-weight:700">{t}</span>'
+
+
+def render_summary(iid: int):
+    """Сводка за весь период: первая и последняя оценка, минимум, направление, сколько месяцев есть ответы."""
+    rows = "".join(
+        f'<tr><td>{r["label"]}</td><td>{core.SIDE_NAME[r["side"]]}</td><td>{chip(r["first"])}</td><td>{chip(r["last"])}</td><td>{chip(r["min"])}</td>'
+        f'<td>{arrow(r["trend"])}</td><td>{r["answered"]} из {core.N_PERIODS}</td></tr>' for r in core.intern_summary(df, iid))
+    st.markdown(
+        f'<div class="sc-wrap"><table class="sc-table"><tr><th>Вопрос</th><th>Кто</th><th>Было</th><th>Стало</th><th>Мин.</th><th>Тренд</th><th>Ответов</th></tr>{rows}</table></div>'
+        '<div class="sc-legend"><span>Было: первая оценка, стало: последняя. Тренд: ↑ выросла на 0,5 балла и больше, ↓ упала на 0,5 и больше, → без заметных изменений, — мало ответов.</span></div>',
+        unsafe_allow_html=True)
+
+
 def render_card(iid: int, mentor_view: bool):
     p = by_id.loc[iid]
     st.subheader(p["name"])
@@ -126,18 +154,15 @@ def render_card(iid: int, mentor_view: bool):
     c1, c2 = st.columns([3, 2], gap="large")
     mine = df[df.intern_id == iid]
     with c1:
-        dim = st.selectbox("Вопрос", list(core.DIMS), format_func=core.DIMS.get, key=f"dim_card_{iid}")
-        st.altair_chart(line_chart(mine, dim), width="stretch")
+        st.markdown("##### Сводка за весь период")
+        render_summary(iid)
+        st.markdown("##### Динамика по вопросам")
+        item = core.ITEM_BY_ID[st.selectbox("Вопрос", [i["id"] for i in core.ITEMS], format_func=lambda x: core.ITEM_BY_ID[x]["label"], key=f"dim_card_{iid}")]
+        st.altair_chart(line_chart(core.item_frame(mine, item), "Оценка"), width="stretch")
+
         def val(side, pn, k):
             s = mine[(mine.source == side) & (mine.period == pn)][k]
             return None if s.empty or pd.isna(s.iloc[0]) else float(s.iloc[0])
-
-        def chip(v, asked=True):  # цвет по уровню оценки: подсказка для чтения, а не порог сигнала
-            if not asked:
-                return '<span class="sep">—</span>'  # такого вопроса нет в анкете этой стороны
-            if v is None:
-                return '<span class="sc no">нет</span>'
-            return f'<span class="sc {"hi" if v >= 8 else "mid" if v >= 6 else "lo"}">{v:.0f}</span>'
 
         head = "".join(f"<th>{p}</th>" for p in core.PERIODS)
         body = ""
@@ -212,19 +237,36 @@ if screen == SCREENS[0]:
     c[0].metric(f"Ответили в волне «{core.PERIODS[-1]}»", f"{cov['intern'] + cov['mentor']} из {cov['total'] * 2}")
     c[0].caption(f"стажёры {cov['intern']}/{cov['total']} · наставники {cov['mentor']}/{cov['total']}")
     c[1].metric("Требуют внимания", len(open_sigs))
-    c[1].caption(f"{sum(s['type'] == 'content' for s in open_sigs)} комментариев · {sum(s['type'] in ('change', 'divergence') for s in open_sigs)} по динамике · {sum(s['type'] == 'data' for s in open_sigs)} по данным")
+    c[1].caption(f"{sum(s['type'] == 'content' for s in open_sigs)} комментариев · {sum(s['type'] in ('change', 'divergence', 'low') for s in open_sigs)} по динамике · {sum(s['type'] == 'data' for s in open_sigs)} по данным")
     last = df.received_at.max() if len(df) else None
     c[2].metric("Последний ответ получен", str(last)[5:16].replace("T", " ") if last else "нет данных")
     c[2].caption("время UTC, из формы или демо-набора")
     left, right = st.columns([3, 2], gap="large")
     with left:
-        dim = st.selectbox("Вопрос", list(core.DIMS), format_func=core.DIMS.get, index=2)
-        m = core.medians(df, dim)
+        item = core.ITEM_BY_ID[st.selectbox("Вопрос", [i["id"] for i in core.ITEMS], format_func=lambda x: core.ITEM_BY_ID[x]["label"])]
+        m = core.medians_item(df, item)
         m = m[m["n"] > 0]  # сторона, у которой такого вопроса нет в анкете, на графике не рисуется
         st.altair_chart(line_chart(m, "Медиана", 320), width="stretch")
-        st.caption("Медиана по ответившим. В демо 5 человек, поэтому число ответов n показано ниже. Две линии, общего среднего нет. Медиана не показывает отдельные случаи, их находят сигналы.")
+        st.caption("Медиана по ответившим. Число ответов n показано ниже: при небольшом числе участников медиана грубая. Две линии, общего среднего нет. "
+                   "Медиана не показывает отдельные случаи, их находят сигналы.")
         piv = m.pivot(index="Сторона", columns="Месяц", values="n").reindex(columns=core.PERIODS).fillna(0).astype(int)
         st.dataframe(piv.rename_axis("n ответов"), width="stretch")
+        # все стажёры по выбранному вопросу: общая картина без перехода в карточки
+        f = core.item_frame(df, item, "v")
+        look = {(r.source, r.intern_id, r.period): float(r.v) for r in f.itertuples() if pd.notna(r.v)}
+        trs = lambda side, iid: core.trend(*(lambda xs: (xs[0], xs[-1]) if len(xs) >= 2 else (None, None))([look[(side, iid, q)] for q in range(1, core.N_PERIODS + 1) if (side, iid, q) in look]))
+        head = "".join(f"<th>{pp}</th>" for pp in core.PERIODS)
+        body = ""
+        for r in people.itertuples():
+            cells = "".join(f'<td>{chip(look.get(("intern", r.intern_id, q)), bool(item["intern"]))}<span class="sep">/</span>{chip(look.get(("mentor", r.intern_id, q)), bool(item["mentor"]))}</td>' for q in range(1, core.N_PERIODS + 1))
+            body += f'<tr><td>{r.name}<br><span class="sep">наставник {r.mentor_name}</span></td>{cells}<td>{arrow(trs("intern", r.intern_id)) if item["intern"] else ""} {arrow(trs("mentor", r.intern_id)) if item["mentor"] else ""}</td></tr>'
+        st.markdown("##### Все стажёры по этому вопросу")
+        st.markdown(f'<div class="sc-wrap"><table class="sc-table"><tr><th>Стажёр</th>{head}<th>Динамика</th></tr>{body}</table></div>'
+                    '<div class="sc-legend"><span>В ячейке: оценка стажёра / оценка наставника. Динамика: стажёр и наставник по очереди.</span></div>', unsafe_allow_html=True)
+        st.caption("Открыть карточку:")
+        bc = st.columns(min(len(people), 6))
+        for i, r in enumerate(people.itertuples()):
+            bc[i % len(bc)].button(r.name, key=f"hm_{r.intern_id}", on_click=go, args=(SCREENS[2], r.intern_id), width="stretch")
     with right:
         st.markdown("##### Темы в комментариях")
         cnt = pd.Series([t for a in ana.values() if a["validation_status"] == "ok" for t in a["topics"] if t != "other"]).value_counts() if ana else pd.Series(dtype=int)
@@ -253,11 +295,59 @@ elif screen == SCREENS[1]:
                 st.rerun()
             c3.button("Карточка", key="op_" + s["key"], on_click=go, args=(SCREENS[2], s["intern_id"]), width="stretch")
 
-else:
+elif screen == SCREENS[2]:
     c0, _ = st.columns([2, 5])
     pick = c0.selectbox("Стажёр", list(people.intern_id), index=list(people.intern_id).index(st.session_state["intern"]), format_func=lambda i: by_id.loc[i, "name"])
     st.session_state["intern"] = int(pick)
     render_card(int(pick), mentor_view=False)
+
+else:
+    st.subheader("Сигналы: что считаем и почему это важно HR")
+    st.caption("Сигнал — повод проверить, а не оценка человека. Пороги можно менять, очередь внимания и карточки пересчитываются сразу.")
+    span = core.SCALE_MAX - core.SCALE_MIN
+    with st.container(border=True):
+        st.markdown("##### Пороги")
+        specs = [("drop", "Падение за месяц, баллов", 1.0, span * 0.8, 0.5), ("divergence", "Расхождение стажёр и наставник, баллов", 1.0, span * 0.8, 0.5),
+                 ("low", "Низкая оценка не выше", float(core.SCALE_MIN), core.SCALE_MIN + span / 2, 0.5), ("low_months", "Месяцев подряд", 2.0, 4.0, 1.0)]
+        cols = st.columns(4)
+        ver = st.session_state.setdefault("th_ver", 0)  # смена номера создаёт поля заново: иначе браузер хранит старые значения после сброса
+        for col, (k, label, lo, hi, step) in zip(cols, specs):
+            new = col.number_input(label, min_value=lo, max_value=hi, value=min(max(float(th[k]), lo), hi), step=step, key=f"th_{k}_{ver}")
+            if new != float(th[k]):
+                core.set_threshold(con, k, new)
+                st.rerun()
+        st.caption(f"Шкала {core.SCALE_MIN}–{core.SCALE_MAX}. Если исходная шкала была грубее (например 1–5), один шаг в ней равен нескольким баллам: порог не должен срабатывать на один шаг.")
+        b1, b2, _ = st.columns([2, 3, 4])
+        if b1.button("Сбросить к значениям анкеты", width="stretch"):
+            core.reset_thresholds(con)
+            st.session_state["th_ver"] = ver + 1
+            st.rerun()
+        if b2.button("Предложить пороги с помощью ИИ", width="stretch"):
+            try:
+                st.session_state["ai_th"] = core.ai_suggest_thresholds(df)
+            except Exception:
+                st.session_state["ai_th"] = None
+                st.warning("Модель не ответила. Укажите LLM_BASE_URL и LLM_MODEL (локальная модель или внешний сервис) и повторите, подробности в README.")
+        ai = st.session_state.get("ai_th")
+        if ai:
+            with st.container(border=True):
+                st.markdown(f"**Предложение ИИ:** падение {ai['drop']:g}, расхождение {ai['divergence']:g}, низкая оценка не выше {ai['low']:g}")
+                st.write(ai["reason"])
+                st.caption("На модель отправляются только числа: распределения оценок, без имён и текстов. Применяет пороги человек.")
+                if st.button("Применить предложение"):
+                    for k in ("drop", "divergence", "low"):
+                        core.set_threshold(con, k, ai[k])
+                    st.session_state["th_ver"] = ver + 1
+                    st.session_state["ai_th"] = None
+                    st.rerun()
+    st.markdown("##### Какие сигналы мы считаем")
+    for t, info in core.SIGNAL_INFO.items():
+        n = sum(s["type"] == t for s in open_sigs)
+        with st.container(border=True):
+            st.markdown(f":{info['color']}-badge[{info['name']}] · сейчас открыто: **{n}**")
+            st.markdown(f"**Что считаем.** {info['rule']}")
+            st.markdown(f"**Почему важно HR.** {info['why']}")
+            st.markdown(f"**Что делает HR.** {info['action']}")
 
 if st.session_state.get("auto") or st.session_state.get("autosync"):
     time.sleep(5)

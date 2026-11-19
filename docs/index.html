@@ -1,4 +1,5 @@
 <!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><style>html{-webkit-text-size-adjust:100%}body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style><title>Команда Код города</title>
+<meta name="claude:viewport-fit-sides" content="cover">
 <style>
 /* Тёмная панель по референсам: боковое меню, плитки разного размера (bento), стеклянные карточки, одна градиентная плитка-акцент.
    Акцент: градиент синий #008AE0 → фиолетовый #7B61FF, оба цвета из палитры сайта чемпионата МГТС. Шрифты MTS с запасными (файлы шрифтов не копируются). */
@@ -120,6 +121,29 @@ svg.ch text{fill:var(--muted);font:12px var(--font-body)}
 .times li{padding:14px;border-radius:16px;background:var(--card-hi);border:1px solid var(--line)}
 .times b{display:block;font:700 15px var(--font-head);color:var(--blue-text);margin-bottom:4px;font-variant-numeric:tabular-nums}
 .times span{color:var(--muted);font-size:14px}
+/* схема решения: блоки с подсказками */
+#architecture{position:relative;z-index:3}
+.archwrap{position:relative}
+.arch{display:grid;grid-template-columns:minmax(0,1.15fr) 26px minmax(0,1fr) 26px minmax(0,1fr) 26px minmax(0,1.15fr) 26px minmax(0,1fr);align-items:center}
+.arch .col{display:grid;gap:10px;align-content:center}
+.arch .ar{display:grid;place-items:center;color:var(--muted);font:700 18px var(--font-head)}
+.node{position:relative;display:block;width:100%;text-align:left;padding:12px 28px 12px 14px;border-radius:14px;background:var(--card-hi);border:1px solid var(--line);color:var(--ink);font:inherit;cursor:pointer;min-height:44px}
+.node b{font-family:var(--font-head);font-size:14px;display:block;line-height:1.25}
+.node span{color:var(--muted);font-size:13px;display:block;margin-top:2px}
+.node:hover,.node.open{border-color:var(--blue-text);box-shadow:0 0 0 3px rgba(0,138,224,.18)}
+.node i.b{position:absolute;top:12px;right:12px;width:9px;height:9px;border-radius:50%;background:var(--ok)}
+.node i.b.net{background:var(--warn)}
+.tip{position:absolute;z-index:20;width:min(350px,calc(100% - 16px));padding:14px 16px;border-radius:14px;background:var(--bg);border:1px solid var(--blue-text);box-shadow:0 14px 44px rgba(0,0,0,.4);font-size:14px;line-height:1.45;opacity:0;pointer-events:none;transform:translateY(6px);transition:opacity .15s,transform .15s}
+.tip.on{opacity:1;transform:none}
+.tip h3{font-size:15px;margin:0 0 6px}
+.tip ul{margin:6px 0 0;padding-left:18px;color:var(--muted)}
+.tip .st{display:inline-block;margin-top:10px;font:700 12px var(--font-head);padding:3px 10px;border-radius:999px;border:1px solid var(--line);background:var(--card-hi)}
+.tip .st.net{color:var(--warn)}.tip .st.off{color:var(--ok)}
+.tip code{font:12px/1.4 ui-monospace,Consolas,monospace;color:var(--blue-text)}
+.archleg{display:flex;flex-wrap:wrap;gap:8px 18px;margin:14px 0 0;color:var(--muted);font-size:13px}
+.archleg i{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--ok);margin-right:6px}
+.archleg i.net{background:var(--warn)}
+@media (max-width:960px){.arch{grid-template-columns:minmax(0,1fr);gap:6px}.arch .ar{transform:rotate(90deg);height:22px}}
 /* команда */
 .team{margin:0;padding:0;list-style:none;display:grid}
 .team li{display:grid;grid-template-columns:44px minmax(0,1.2fr) minmax(0,2fr);gap:14px;align-items:center;padding:14px 4px;border-top:1px solid var(--line)}
@@ -138,13 +162,15 @@ footer{color:var(--muted);font-size:14px;padding:4px 8px 0}
 @media (max-width:560px){.c3{grid-column:span 12}.flow,.times{grid-template-columns:minmax(0,1fr)}.team li{grid-template-columns:44px minmax(0,1fr)}.team li>div:last-child{grid-column:1/-1}.side nav a span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}.side nav a{min-width:44px;justify-content:center}}
 </style>
 
-</head><body><div class="app">
+<div class="app">
 <aside class="side">
   <div class="brand"><i>КГ</i><span>Код города</span></div>
   <nav aria-label="Разделы">
     <a href="#overview" class="on"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg><span>Обзор</span></a>
     <a href="#task"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg><span>Задача</span></a>
     <a href="#solution"><svg viewBox="0 0 24 24"><circle cx="5" cy="6" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="12" cy="18" r="2"/><path d="M7 6h10M6 8l5 8M18 8l-5 8"/></svg><span>Решение</span></a>
+    <a href="#offline"><svg viewBox="0 0 24 24"><path d="M3 3l18 18M8.5 16.5a5 5 0 017 0M5 12.5a10 10 0 015-2.7M19 12.5a10 10 0 00-3.6-2.4M2 8.8a15 15 0 015-2.9M22 8.8A15 15 0 0012 5"/><circle cx="12" cy="20" r="1" fill="currentColor"/></svg><span>Без сети</span></a>
+    <a href="#architecture"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="6" height="5" rx="1.5"/><rect x="15" y="4" width="6" height="5" rx="1.5"/><rect x="9" y="15" width="6" height="5" rx="1.5"/><path d="M6 9v3h12V9M12 12v3"/></svg><span>Схема</span></a>
     <a href="#example"><svg viewBox="0 0 24 24"><path d="M3 20h18M6 16l4-5 3 3 5-8"/></svg><span>Пример</span></a>
     <a href="#demo"><svg viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z"/></svg><span>Защита</span></a>
     <a href="#team"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6M16 5a3.5 3.5 0 010 6.5M18 14.5c2 .7 3.5 2.6 3.5 5.5"/></svg><span>Команда</span></a>
@@ -173,7 +199,7 @@ footer{color:var(--muted);font-size:14px;padding:4px 8px 0}
   <div class="grid">
     <div class="card c3 kpi hi"><div class="l"><span class="dot"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span>Стажировка</div><div class="v">6 месяцев</div><div class="s">Каждый месяц есть анкета</div></div>
     <div class="card c3 kpi"><div class="l"><span class="dot"><svg viewBox="0 0 24 24"><circle cx="8" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M2 20c0-3 2.7-5 6-5s6 2 6 5M15 15c3 0 6 1.6 6 4.5"/></svg></span>Стороны опроса</div><div class="v">2</div><div class="s">Стажёр и наставник, отдельно</div></div>
-    <div class="card c3 kpi"><div class="l"><span class="dot"><svg viewBox="0 0 24 24"><path d="M6 17V11a6 6 0 0112 0v6l2 2H4zM10 21h4"/></svg></span>Вида сигнала</div><div class="v">4</div><div class="s">Изменение, расхождение, комментарий, нет данных</div></div>
+    <div class="card c3 kpi"><div class="l"><span class="dot"><svg viewBox="0 0 24 24"><path d="M6 17V11a6 6 0 0112 0v6l2 2H4zM10 21h4"/></svg></span>Вида сигнала</div><div class="v">5</div><div class="s">Изменение, расхождение, стабильно низко, комментарий, нет данных</div></div>
     <div class="card c3 kpi"><div class="l"><span class="dot"><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 3h6"/></svg></span>Показ на защите</div><div class="v">90 секунд</div><div class="s">На живой системе</div></div>
 
     <section id="task" class="card c5">
@@ -193,22 +219,65 @@ footer{color:var(--muted);font-size:14px;padding:4px 8px 0}
       <ul class="sig">
         <li><span class="ic">1</span><div><b>Изменение</b><span>Оценка упала по сравнению с прошлым месяцем</span></div><span class="pill">≥ 2 балла</span></li>
         <li><span class="ic">2</span><div><b>Расхождение</b><span>Стажёр и наставник оценили один вопрос по-разному</span></div><span class="pill">≥ 3 балла</span></li>
-        <li><span class="ic">3</span><div><b>Комментарий</b><span>В тексте названа конкретная проблема</span></div><span class="pill">с цитатой</span></li>
-        <li><span class="ic">4</span><div><b>Нет данных</b><span>Ответ за месяц не пришёл. Это не ноль</span></div><span class="pill">пропуск</span></li>
+        <li><span class="ic">3</span><div><b>Стабильно низко</b><span>Оценка не выше порога несколько месяцев подряд</span></div><span class="pill">≤ 4, 2 мес.</span></li>
+        <li><span class="ic">4</span><div><b>Комментарий</b><span>В тексте названа конкретная проблема</span></div><span class="pill">с цитатой</span></li>
+        <li><span class="ic">5</span><div><b>Нет данных</b><span>Ответ за месяц не пришёл. Это не ноль</span></div><span class="pill">пропуск</span></li>
       </ul>
-      <p class="note">Пороги в 2 и 3 балла предварительные, мы изменим их после обсуждения с HR.</p>
+      <p class="note">Пороги предварительные. HR меняет их на экране «Сигналы», список пересчитывается сразу. Рядом с каждым сигналом написано, почему он важен и что делать.</p>
     </section>
 
     <section id="solution" class="card">
       <h2>Как работает решение</h2>
-      <p class="sub">Формат анкет и данных МГТС нам пока не известен. Ниже порядок работы, который мы закладываем.</p>
+      <p class="sub">Организаторы описали данные: две таблицы Excel (ответы стажёров и ответы наставников), 5 пар, 6 ежемесячных опросов. Точные колонки и вопросы мы увидим на финале, поэтому программа настраивается отдельным файлом. Ниже порядок работы.</p>
       <ol class="flow">
         <li><b>Анкета</b><span>Стажёр и наставник заполняют анкеты во внешнем сервисе опросов.</span></li>
         <li><b>Приём ответа</b><span>Новый ответ сам попадает в программу. Ответ, отправленный дважды, учитывается один раз.</span></li>
-        <li><b>Расчёт оценок</b><span>Программа считает изменения за месяц и разницу между стажёром и наставником.</span></li>
+        <li><b>Расчёт сигналов</b><span>Программа считает изменения за месяц, расхождения между стажёром и наставником и стабильно низкие оценки.</span></li>
         <li><b>Разбор комментариев</b><span>ИИ определяет тему и выбирает цитату. Программа проверяет, что цитата есть в тексте.</span></li>
         <li><b>Дашборд</b><span>Обзор программы, список случаев для проверки и карточка каждого стажёра.</span></li>
       </ol>
+    </section>
+
+    <section id="offline" class="card" aria-labelledby="offh">
+      <h2 id="offh">Работает без интернета<span class="tag">Проверено на ноутбуке</span></h2>
+      <p class="sub">Если на финале не будет сети, показ не остановится. Всё, что нужно для работы, запускается на одном ноутбуке.</p>
+      <ul class="points">
+        <li><span class="dot"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg></span><div><b>Программа и данные на ноутбуке</b><span>Дашборд, приём ответов и база запускаются одной командой. Все данные лежат в одном файле, копия файла восстанавливает программу.</span></div></li>
+        <li><span class="dot"><svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="3"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/></svg></span><div><b>ИИ для комментариев на ноутбуке</b><span>Модель Qwen2.5 7B запускается через Ollama. Мы проверили её на ноутбуке без видеокарты: около 15 секунд на комментарий. Данные никуда не отправляются.</span></div></li>
+        <li><span class="dot"><svg viewBox="0 0 24 24"><path d="M5 12l4 4 10-10"/></svg></span><div><b>Цитату проверяет код, а не модель</b><span>Если модель привела цитату, которой нет в тексте, комментарий уходит на ручной разбор. Выдуманная цитата на экран не попадает.</span></div></li>
+        <li><span class="dot"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h10M4 17h7"/></svg></span><div><b>Запасной разбор по правилам</b><span>Если модель не отвечает, включаются правила: тема и цитата определяются мгновенно, список сигналов остаётся полным.</span></div></li>
+        <li><span class="dot"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></svg></span><div><b>Новый ответ без сети</b><span>Строку можно добавить в файл Excel или ввести в форме внутри программы. Онлайн-формы и внешние модели по API мы подключаем, когда есть интернет, но без них программа работает.</span></div></li>
+      </ul>
+    </section>
+
+    <section id="architecture" class="card" aria-labelledby="archh">
+      <h2 id="archh">Схема решения</h2>
+      <p class="sub">Наведите мышь на блок, чтобы увидеть, что в нём происходит. На телефоне нажмите на блок.</p>
+      <div class="archwrap" id="archwrap">
+        <div class="arch">
+          <div class="col">
+            <button class="node" type="button" data-k="excel"><i class="b"></i><b>Таблицы Excel</b><span>ответы стажёров и наставников</span></button>
+            <button class="node" type="button" data-k="form"><i class="b net"></i><b>Онлайн-форма</b><span>Google или Яндекс</span></button>
+            <button class="node" type="button" data-k="manual"><i class="b"></i><b>Ввод в программе</b><span>форма внутри дашборда</span></button>
+          </div>
+          <div class="ar" aria-hidden="true">→</div>
+          <div class="col"><button class="node" type="button" data-k="ingest"><i class="b"></i><b>Приём и проверка</b><span>колонки, шкалы, пары, дубли</span></button></div>
+          <div class="ar" aria-hidden="true">→</div>
+          <div class="col"><button class="node" type="button" data-k="db"><i class="b"></i><b>База данных</b><span>один файл, ответы не стираются</span></button></div>
+          <div class="ar" aria-hidden="true">→</div>
+          <div class="col">
+            <button class="node" type="button" data-k="text"><i class="b"></i><b>Разбор комментариев</b><span>правила или ИИ, цитата проверена</span></button>
+            <button class="node" type="button" data-k="signals"><i class="b"></i><b>Расчёт сигналов</b><span>5 видов, пороги настраиваются</span></button>
+          </div>
+          <div class="ar" aria-hidden="true">→</div>
+          <div class="col">
+            <button class="node" type="button" data-k="dash"><i class="b"></i><b>Дашборд HR</b><span>обзор, очередь, карточка</span></button>
+            <button class="node" type="button" data-k="action"><i class="b"></i><b>Действие HR</b><span>кто, что и к какому сроку</span></button>
+          </div>
+        </div>
+        <div class="tip" id="tip" role="tooltip"></div>
+      </div>
+      <div class="archleg"><span><i></i>работает без интернета</span><span><i class="net"></i>нужен интернет (необязательно)</span></div>
     </section>
 
     <section id="example" class="card c7" aria-labelledby="exh">
@@ -231,7 +300,7 @@ footer{color:var(--muted);font-size:14px;padding:4px 8px 0}
       <p class="sub">Показ займёт около 90 секунд и пройдёт на живой системе.</p>
       <div class="seg" aria-hidden="true" style="grid-template-columns:20fr 25fr 20fr 25fr"><span style="flex:20"></span><span style="flex:25"></span><span style="flex:20"></span><span style="flex:25"></span></div>
       <ul class="times">
-        <li><b>0–20 с</b><span>Загружена новая волна анкет. Видно, сколько стажёров и наставников ответили.</span></li>
+        <li><b>0–20 с</b><span>Заполняем анкету вживую в том формате, в каком выдали данные. Новый ответ появляется на дашборде.</span></li>
         <li><b>20–45 с</b><span>Открываем сигнал о недостающем доступе: исходный комментарий и изменение оценок.</span></li>
         <li><b>45–65 с</b><span>Рядом показываем оценку наставника.</span></li>
         <li><b>65–90 с</b><span>Записываем ответственного и срок действия.</span></li>
@@ -257,6 +326,47 @@ footer{color:var(--muted);font-size:14px;padding:4px 8px 0}
 <script>
 (function(){
   document.querySelectorAll('.bio').forEach(function(b){if(!b.textContent.trim())b.hidden=true;});
+
+  // Схема решения: подсказки к блокам. net: 0 без сети, 1 нужна сеть, 2 работает и без сети, сеть по желанию
+  var TIPS={
+    excel:{t:'Таблицы Excel',net:0,f:'ingest_tools.py, import_data.py',s:['Две таблицы: ответы стажёров и ответы наставников, 6 ежемесячных опросов.','Файл кладётся в папку или загружается в интерфейсе, строки читаются сами.','Новые строки подхватываются каждые 5 секунд: добавили строку в файл, через пять секунд она на дашборде.','Читаются также CSV, Word и Google Таблица по ссылке.']},
+    form:{t:'Онлайн-форма',net:1,f:'receiver.py, forms/make_google_form.py',s:['Анкета в Google Формах или Яндекс Формах повторяет структуру анкет МГТС.','Ответ приходит в программу сразу (webhook) или читается из таблицы ответов.','Нужны интернет и публичный адрес приёмника. Без них остаётся файл или форма в программе.']},
+    manual:{t:'Ввод в программе',net:0,f:'live_ui.py',s:['Форма строится из колонок источника: вопросы берутся из настроек, ничего не нужно править в коде.','Ответ записывается сразу, нужен только ноутбук.','Так можно показать новую анкету вживую, даже если интернета нет.']},
+    ingest:{t:'Приём и проверка',net:0,f:'ingest_tools.py, mapping.json',s:['Колонки сопоставляются с вопросами по файлу mapping.json, шкалы приводятся к 1–10.','Пара «наставник и стажёр» определяется по колонке или по номеру в ID. Такие пары попадают в отчёт на проверку глазами.','Повтор той же строки не создаёт дубль, исправленная строка заменяет прежний ответ.','Пропуск остаётся пропуском, а не нулём.']},
+    db:{t:'База данных',net:0,f:'core.py, pulse.db',s:['Один файл SQLite. Исходные ответы только добавляются и не стираются.','Оценки по месяцам, сигналы и статусы пересчитываются из исходных ответов.','Копия файла восстанавливает всё: программу можно перенести на другой ноутбук.']},
+    text:{t:'Разбор комментариев',net:2,f:'core.py, survey.json',s:['Режим «правила»: тема и цитата по правилам из настроек, мгновенно и без сети.','Режим «ИИ»: модель Qwen2.5 7B на ноутбуке через Ollama (около 15 секунд на комментарий) или внешняя модель по API, если сеть разрешена.','Модель отвечает темой и цитатой. Код проверяет, что цитата есть в тексте. Если нет, комментарий уходит на ручной разбор.','Если модель не ответила, включаются правила.']},
+    signals:{t:'Расчёт сигналов',net:0,f:'core.py',s:['Пять видов: изменение, расхождение, стабильно низко, комментарий, нет данных.','Расчёт по простым правилам, без ИИ, поэтому результат можно проверить вручную.','Пороги HR меняет на экране «Сигналы». ИИ может предложить пороги по числам (без имён и текстов), применяет их человек.','Для каждого сигнала написано, почему он важен HR и что делать.']},
+    dash:{t:'Дашборд HR',net:0,f:'app.py (Streamlit)',s:['Четыре экрана: обзор программы, очередь внимания, карточка стажёра, сигналы.','Две роли: HR и наставник. Наставник не видит закрытые комментарии стажёров.','Автообновление каждые 5 секунд: новый ответ виден без перезагрузки страницы.','К каждому выводу можно открыть исходный ответ и цитату.']},
+    action:{t:'Действие HR',net:0,f:'core.py',s:['К сигналу HR записывает ответственного, срок и что делаем.','Статус сигнала: новый, в работе, закрыт.','Записи хранятся в той же базе, поэтому видно, что сделано и когда.']}
+  };
+  (function(){
+    var wrap=document.getElementById('archwrap'),tip=document.getElementById('tip');if(!wrap||!tip)return;
+    var nodes=[].slice.call(wrap.querySelectorAll('.node')),cur=null,pinned=null;
+    function esc(s){return s.replace(/[&<>]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;'}[c]});}
+    function show(n){
+      var d=TIPS[n.getAttribute('data-k')];if(!d)return;
+      var st=d.net===1?['net','Нужен интернет']:d.net===2?['off','Работает и без сети, внешняя модель по желанию']:['off','Работает без интернета'];
+      tip.innerHTML='<h3>'+esc(d.t)+'</h3><ul>'+d.s.map(function(x){return'<li>'+esc(x)+'</li>'}).join('')+'</ul><span class="st '+st[0]+'">'+st[1]+'</span> <span class="st"><code>'+esc(d.f)+'</code></span>';
+      nodes.forEach(function(x){x.classList.toggle('open',x===n);x.removeAttribute('aria-describedby')});
+      n.setAttribute('aria-describedby','tip');
+      tip.classList.add('on');cur=n;
+      var w=wrap.getBoundingClientRect(),r=n.getBoundingClientRect(),th=tip.offsetHeight,tw=tip.offsetWidth;
+      var left=Math.max(0,Math.min(r.left-w.left,w.width-tw)),below=r.bottom-w.top+8;
+      var top=(r.bottom+th+16>window.innerHeight&&r.top-th-16>0)?r.top-w.top-th-8:below;
+      tip.style.left=left+'px';tip.style.top=top+'px';
+    }
+    function hide(){tip.classList.remove('on');nodes.forEach(function(x){x.classList.remove('open');x.removeAttribute('aria-describedby')});cur=null;}
+    nodes.forEach(function(n){
+      n.addEventListener('mouseenter',function(){if(!pinned)show(n)});
+      n.addEventListener('mouseleave',function(){if(!pinned)hide()});
+      n.addEventListener('focus',function(){if(!pinned)show(n)});
+      n.addEventListener('blur',function(){if(!pinned)hide()});
+      n.addEventListener('click',function(e){e.stopPropagation();if(pinned===n){pinned=null;hide();}else{pinned=n;show(n);}});
+    });
+    document.addEventListener('click',function(){pinned=null;hide();});
+    document.addEventListener('keydown',function(e){if(e.key==='Escape'){pinned=null;hide();}});
+    window.addEventListener('resize',function(){if(cur)show(cur)});
+  })();
 
   // График: выдуманные данные из макета (стажёр 2, вопрос «Нагрузка и ресурсы»)
   var M=['Июн','Июл','Авг','Сен','Окт','Ноя'],I=[8,8,7,5,4,4],T=[8,8,8,8,8,8];
@@ -311,4 +421,3 @@ footer{color:var(--muted);font-size:14px;padding:4px 8px 0}
   }
 })();
 </script>
-</body></html>

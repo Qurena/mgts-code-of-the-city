@@ -58,7 +58,8 @@ class Signals(unittest.TestCase):
 
     def test_expected_demo_signals(self):
         types = sorted(s["type"] for s in self.sig())
-        self.assertEqual(types, ["change", "change", "content", "content", "content", "content", "data", "divergence", "divergence"])
+        # «low»: у стажёра 2 «Нагрузка и ресурсы» (4, 4) и у стажёра 3 «Обучение и развитие» (4, 4) не выше порога 4 два месяца подряд
+        self.assertEqual(types, ["change", "change", "content", "content", "content", "content", "data", "divergence", "divergence", "low", "low"])
 
     def test_new_answer_removes_data_gap_signal(self):
         self.assertTrue(any(s["type"] == "data" and s["intern_id"] == 5 for s in self.sig()))

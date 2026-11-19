@@ -1,0 +1,38 @@
+{
+  "name": "webinar",
+  "_comment": "Репетиция в формате вебинара: у стажёра и наставника разные вопросы, поэтому пары для сравнения заданы в comparisons.",
+  "periods": ["Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь"],
+  "scale": [1, 10],
+  "dimensions": {
+    "interest": "Интересные задачи",
+    "clarity": "Понятные задачи",
+    "support": "Поддержка наставника",
+    "access": "Доступы и инструменты",
+    "performance": "Справляется с задачами",
+    "speed": "Оперативность",
+    "independence": "Самостоятельность"
+  },
+  "side_dimensions": {
+    "intern": ["interest", "clarity", "support", "access"],
+    "mentor": ["performance", "speed", "independence"]
+  },
+  "comparisons": [
+    {"id": "clarity-performance", "label": "Понимание задач и результат", "intern": "clarity", "mentor": "performance"},
+    {"id": "interest-independence", "label": "Интерес и самостоятельность", "intern": "interest", "mentor": "independence"}
+  ],
+  "extra_topics": {},
+  "open_topics": false,
+  "thresholds": {"drop": 2.5, "divergence": 3.5, "low": 4, "low_months": 2},
+  "actions": {
+    "interest": "Обсудить с наставником состав задач и следующий уровень сложности",
+    "clarity": "Уточнить ожидания и критерии результата с наставником",
+    "support": "Согласовать регулярную встречу",
+    "access": "Проверить доступы и владельца заявки"
+  },
+  "keyword_rules": {
+    "access": "(?:доступ[а-я]*\\s+(?:до сих пор\\s+)?нет|нет\\s+доступ[а-я]*|жду\\s+доступ[а-я]*)",
+    "interest": "(?:задани[яй]\\s+однотипн[а-я]*|нового мало|скучн[а-я]*)",
+    "support": "(?:не получилось\\s+обсудить\\s+работу|нет обратной связи)",
+    "clarity": "(?:не понимаю,?\\s+(?:какой|что|зачем|к кому)[а-я ]{0,30}|непонятн[а-я]+\\s+задач[а-я]*)"
+  }
+}
