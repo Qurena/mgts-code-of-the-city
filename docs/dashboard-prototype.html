@@ -1,4 +1,5 @@
 <!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><style>html{-webkit-text-size-adjust:100%}body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style><title>Пульс стажировки</title>
+<meta name="claude:viewport-fit-sides" content="cover">
 <style>
 /* Макет дашборда HR: обзор → очередь внимания → карточка стажёра (страница 17 стратегии).
    Оформление по токенам сайта studchamp.mgts.ru: синий #008AE0, графит #1D2023, серая шкала, радиусы 8/12/16, шрифты MTS с запасными.
@@ -105,6 +106,7 @@ td.sig{box-shadow:inset 0 0 0 1px var(--crit);border-radius:10px}
 .scale{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:12px;font-size:12px;color:var(--muted);align-items:center}
 .scale .sc{min-width:0;padding:1px 7px;margin-right:4px}
 .scroll{overflow-x:auto}
+.sc small{opacity:.7;font-weight:500;font-size:.8em}
 .quote{border-left:3px solid var(--line);padding:2px 0 2px 12px;margin:8px 0}
 .quote mark{background:var(--warn-bg);color:var(--ink);padding:0 2px;border-radius:2px}
 .who{font-size:12px;font-weight:600}
@@ -117,10 +119,10 @@ td.sig{box-shadow:inset 0 0 0 1px var(--crit);border-radius:10px}
 .back{background:none;border:0;color:var(--intern);cursor:pointer;font:500 13px var(--font-body);padding:0;margin-bottom:10px}
 </style>
 
-</head><body><div class="demo">Макет интерфейса. Все имена, оценки и комментарии выдуманы для демонстрации; настоящие данные МГТС появятся на финале.</div>
+<div class="demo">Макет интерфейса на выдуманных данных в формате вебинара: две таблицы Excel, 5 пар, 6 месяцев. Показатели посчитаны настоящим кодом прототипа. Настоящие данные МГТС появятся на финале.</div>
 <div class="wrap">
 <header>
-  <div class="logo"><h1>Пульс стажировки</h1><span>рабочее название · когорта-пример · 6 волн</span><a class="sitelink" href="index.html">← О команде</a></div>
+  <div class="logo"><h1>Пульс стажировки</h1><span>формат вебинара · 5 пар · 6 месяцев</span><a class="sitelink" href="index.html">← О команде</a></div>
   <div class="ctrl">
     <div class="seg" role="group" aria-label="Роль"><button id="roleHr" aria-pressed="true">HR</button><button id="roleMentor" aria-pressed="false">Наставник</button></div>
     <select id="mentorPick" aria-label="Чей наставник" hidden></select>
@@ -130,132 +132,116 @@ td.sig{box-shadow:inset 0 0 0 1px var(--crit);border-radius:10px}
 <main id="view" role="tabpanel"></main>
 </div>
 
+
 <script>
-const WAVES=['Июн','Июл','Авг','Сен','Окт','Ноя'];
-const DIMS={goals:'Цели и задачи',feedback:'Обратная связь',resources:'Нагрузка и ресурсы',growth:'Обучение и развитие'};
-const TOPICS={goals:'Цели и задачи',feedback:'Обратная связь',resources:'Нагрузка и ресурсы',growth:'Обучение и развитие',interaction:'Взаимодействие',other:'Другое / непонятно'};
+const DATA={"waves": ["Июн", "Июл", "Авг", "Сен", "Окт", "Ноя"], "dims": {"interest": {"label": "Интересные задачи", "side": "i", "max": 5}, "clarity": {"label": "Понятные задачи", "side": "i", "max": 5}, "support": {"label": "Поддержка наставника", "side": "i", "max": 5}, "access": {"label": "Доступы и инструменты", "side": "i", "max": 5}, "performance": {"label": "Справляется с задачами", "side": "m", "max": 10}, "speed": {"label": "Оперативность", "side": "m", "max": 10}, "independence": {"label": "Самостоятельность", "side": "m", "max": 10}}, "items": [{"id": "clarity-performance", "label": "Понимание задач и результат", "i": "clarity", "m": "performance"}, {"id": "interest-independence", "label": "Интерес и самостоятельность", "i": "interest", "m": "independence"}, {"id": "intern:support", "label": "Поддержка наставника (стажёр)", "i": "support", "m": null}, {"id": "intern:access", "label": "Доступы и инструменты (стажёр)", "i": "access", "m": null}, {"id": "mentor:speed", "label": "Оперативность (наставник)", "i": null, "m": "speed"}], "people": [{"id": "С-01", "mentor": "Н-01", "i": {"interest": [5, 5, 4, 5, 5, 5], "clarity": [4, 4, 4, 5, 5, 5], "support": [5, 4, 5, 5, 4, 5], "access": [5, 5, 5, 4, 5, 5]}, "m": {"performance": [8, 8, 9, 9, 9, 9], "speed": [8, 8, 8, 9, 9, 9], "independence": [7, 8, 8, 9, 9, 9]}}, {"id": "С-02", "mentor": "Н-02", "i": {"interest": [4, 4, 4, 4, 4, 4], "clarity": [4, 4, 4, 3, 3, 3], "support": [4, 4, 4, 4, 4, 4], "access": [4, 4, 4, 2, 1, 1]}, "m": {"performance": [8, 8, 8, 8, 8, 8], "speed": [8, 8, 8, 8, 8, 8], "independence": [8, 8, 8, 8, 8, 8]}}, {"id": "С-03", "mentor": "Н-03", "i": {"interest": [4, 4, 3, 2, 2, 2], "clarity": [4, 4, 4, 4, 4, 4], "support": [4, 4, 4, 4, 4, 4], "access": [5, 5, 4, 5, 5, 5]}, "m": {"performance": [8, 9, 9, 9, 9, 9], "speed": [8, 8, 9, 9, 9, 9], "independence": [8, 9, 9, 9, 9, 9]}}, {"id": "С-04", "mentor": "Н-04", "i": {"interest": [5, 5, 5, 5, 5, 5], "clarity": [5, 5, 4, 4, 4, 4], "support": [5, 4, 4, 3, 3, 3], "access": [4, 4, 4, 4, 4, 4]}, "m": {"performance": [9, 9, 8, 6, 5, 4], "speed": [8, 8, 7, 6, 5, 5], "independence": [8, 8, 7, 6, 6, 5]}}, {"id": "С-05", "mentor": "Н-05", "i": {"interest": [4, 4, 4, 4, 4, null], "clarity": [4, 4, 4, 4, 4, null], "support": [4, 4, 4, 4, 4, null], "access": [4, 4, 4, 4, 4, null]}, "m": {"performance": [7, 7, 7, 7, 7, 7], "speed": [7, 7, 7, 7, 7, 7], "independence": [7, 7, 7, 7, 7, 7]}}], "comments": [{"id": "imp-0152ab480ffff8", "u": "С-02", "w": 3, "side": "i", "text": "Не понимаю, к кому обратиться за доступом в систему, жду доступ уже вторую неделю.", "topic": "access", "quote": "Не понимаю, к кому обратиться за доступом в сист", "action": "Проверить доступы и владельца заявки"}, {"id": "imp-7a91e7d797682b", "u": "С-03", "w": 4, "side": "i", "text": "Задания однотипные, нового мало.", "topic": "interest", "quote": "Задания однотипные", "action": "Обсудить с наставником состав задач и следующий уровень сложности"}, {"id": "imp-197aaae49e428f", "u": "С-04", "w": 4, "side": "i", "text": "За месяц так и не получилось обсудить работу с наставником.", "topic": "support", "quote": "не получилось обсудить работу", "action": "Согласовать регулярную встречу"}, {"id": "imp-11cad878101c5a", "u": "С-01", "w": 5, "side": "i", "text": "Всё устраивает, нравится команда.", "topic": "other", "quote": null, "action": null}, {"id": "imp-944d67e2f06978", "u": "С-02", "w": 5, "side": "i", "text": "Доступа до сих пор нет, задачи делаю в тестовой среде.", "topic": "access", "quote": "Доступа до сих пор нет", "action": "Проверить доступы и владельца заявки"}, {"id": "imp-a7aff570a51fd7", "u": "С-03", "w": 5, "side": "m", "text": "Справляется отлично, готов к более сложным задачам.", "topic": "other", "quote": null, "action": null}, {"id": "imp-bb6c1a1db7c221", "u": "С-04", "w": 5, "side": "m", "text": "Результат стал ниже, срываются сроки.", "topic": "other", "quote": null, "action": null}], "signals": [{"key": "ct-intern-imp-944d67e2f06978", "type": "content", "u": "С-02", "w": 5, "dim": "access", "pr": 4, "title": "Барьер в комментарии: «Доступа до сих пор нет»", "why": "Тема: Доступы и инструменты. Следующий шаг из каталога: Проверить доступы и владельца заявки."}, {"key": "ct-intern-imp-0152ab480ffff8", "type": "content", "u": "С-02", "w": 3, "dim": "access", "pr": 4, "title": "Барьер в комментарии: «Не понимаю, к кому обратиться за доступом в сист»", "why": "Тема: Доступы и инструменты. Следующий шаг из каталога: Проверить доступы и владельца заявки."}, {"key": "dv-3-interest-independence", "type": "divergence", "u": "С-03", "w": 5, "dim": "interest-independence", "pr": 3, "title": "Расхождение «Интерес и самостоятельность»: стажёр (Интересные задачи) 3.2, наставник (Самостоятельность) 9", "why": "Разница 5.8 в одном месяце. Средний балл не считаем."}, {"key": "dv-4-interest-independence", "type": "divergence", "u": "С-04", "w": 5, "dim": "interest-independence", "pr": 3, "title": "Расхождение «Интерес и самостоятельность»: стажёр (Интересные задачи) 10, наставник (Самостоятельность) 5", "why": "Разница 5 в одном месяце. Средний балл не считаем."}, {"key": "lw-2-access-intern", "type": "low", "u": "С-02", "w": 5, "dim": "access", "pr": 3, "title": "Стажёр: «Доступы и инструменты» не выше 4 уже 2 мес. подряд (1, 1)", "why": "Оценка не восстановилась после снижения. Разовая низкая оценка бывает, повторная означает проблему, которая сама не уйдёт."}, {"key": "lw-3-interest-intern", "type": "low", "u": "С-03", "w": 5, "dim": "interest", "pr": 3, "title": "Стажёр: «Интересные задачи» не выше 4 уже 2 мес. подряд (3.2, 3.2)", "why": "Оценка не восстановилась после снижения. Разовая низкая оценка бывает, повторная означает проблему, которая сама не уйдёт."}, {"key": "ct-intern-imp-197aaae49e428f", "type": "content", "u": "С-04", "w": 4, "dim": "support", "pr": 3, "title": "Барьер в комментарии: «не получилось обсудить работу»", "why": "Тема: Поддержка наставника. Следующий шаг из каталога: Согласовать регулярную встречу."}, {"key": "ct-intern-imp-7a91e7d797682b", "type": "content", "u": "С-03", "w": 4, "dim": "interest", "pr": 3, "title": "Барьер в комментарии: «Задания однотипные»", "why": "Тема: Интересные задачи. Следующий шаг из каталога: Обсудить с наставником состав задач и следующий уровень сложности."}, {"key": "ch-2-access-intern", "type": "change", "u": "С-02", "w": 3, "dim": "access", "pr": 3, "title": "Стажёр: оценка «Доступы и инструменты» упала с 7.8 до 3.2", "why": "Падение на 4.6 к предыдущему месяцу. Повод проверить контекст, это не прогноз."}, {"key": "dv-4-clarity-performance", "type": "divergence", "u": "С-04", "w": 5, "dim": "clarity-performance", "pr": 2, "title": "Расхождение «Понимание задач и результат»: стажёр (Понятные задачи) 7.8, наставник (Справляется с задачами) 4", "why": "Разница 3.8 в одном месяце. Средний балл не считаем."}, {"key": "dq-5-intern", "type": "data", "u": "С-05", "w": 5, "dim": null, "pr": 1, "title": "Нет ответа стажёра за «Ноябрь»", "why": "Данных недостаточно. Ноль не подставляем и оценку человеку не даём."}], "info": [{"name": "Изменение", "color": "orange", "rule": "Оценка одной стороны по одному вопросу упала на «Падение» баллов и больше к предыдущему месяцу.", "why": "Резкое падение чаще всего значит, что в этом месяце что-то произошло: сменились задачи, пропал доступ, поссорились. Ловить это нужно в месяц события, а не на итоговой встрече.", "action": "Спросить стажёра или наставника, что изменилось в этом месяце."}, {"name": "Расхождение", "color": "blue", "rule": "Стажёр и наставник оценили парные вопросы в одном месяце по-разному: разница не меньше порога «Расхождение».", "why": "Если стажёр доволен, а наставник нет (или наоборот), каждая сторона не знает, как её видит другая. Такие пары чаще всего заканчиваются неожиданным уходом или конфликтом.", "action": "Провести общую встречу втроём: HR, стажёр, наставник. Сверить ожидания."}, {"name": "Стабильно низко", "color": "red", "rule": "Оценка не выше порога «Низкая оценка» несколько месяцев подряд (число месяцев в настройках).", "why": "Падение уже случилось, а оценка не восстановилась. Разовая плохая оценка бывает у всех, повторная означает проблему, которая сама не уйдёт.", "action": "Назначить встречу с владельцем проблемы и записать срок решения в карточке."}, {"name": "Комментарий", "color": "red", "rule": "В тексте комментария стажёра найден барьер (нет доступа, непонятные задачи и т.п.) и дословная цитата, подтверждающая его.", "why": "В оценках не видно, что именно мешает. Комментарий называет причину, а цитата позволяет HR проверить вывод и не полагаться на пересказ модели.", "action": "Действие подбирается по теме барьера из каталога действий."}, {"name": "Нет данных", "color": "gray", "rule": "За последний месяц нет ответа стажёра или наставника.", "why": "Молчание тоже сигнал: человек мог не получить ссылку, забыть или перестать отвечать. Без этого сигнала HR принимает отсутствие ответа за «всё хорошо».", "action": "Напомнить об анкете. Ноль вместо ответа не подставляем."}], "thr": {"drop": 2.5, "divergence": 3.5, "low": 4, "low_months": 2}, "sample": {"i": {"head": ["ID стажёра", "Дата ответа", "Насколько вам интересны задачи (1-5)", "Насколько понятны задачи (1-5)", "Получаете ли вы поддержку наставника (1-5)", "Хватает ли доступов и инструментов (1-5)", "Что мешает работать?"], "rows": [["С-01", "2026-06-18", 5, 4, 5, 5, null], ["С-01", "2026-07-18", 5, 4, 4, 5, null], ["С-01", "2026-08-18", 4, 4, 5, 5, null], ["С-01", "2026-09-18", 5, 5, 5, 4, null], ["С-01", "2026-10-18", 5, 5, 4, 5, null], ["С-01", "2026-11-18", 5, 5, 5, 5, "Всё устраивает, нравится команда."]]}, "m": {"head": ["ID наставника", "Дата ответа", "Как стажёр справляется с задачами (1-10)", "Насколько оперативно (1-10)", "Насколько самостоятельно (1-10)", "Комментарий наставника"], "rows": [["Н-01", "2026-06-18", 8, 8, 7, null], ["Н-01", "2026-07-18", 8, 8, 8, null], ["Н-01", "2026-08-18", 9, 8, 8, null], ["Н-01", "2026-09-18", 9, 9, 9, null], ["Н-01", "2026-10-18", 9, 9, 9, null], ["Н-01", "2026-11-18", 9, 9, 9, null]]}}};
+const WAVES=DATA.waves,NW=WAVES.length,DIMS=DATA.dims,ITEMS=DATA.items,D=DATA.people,C=DATA.comments,SIG=DATA.signals,INFO=DATA.info;
 const N=null;
-const D=[
-{id:1,name:'Алексей К.',i:{goals:[7,7,8,8,8,8],feedback:[7,8,8,8,7,8],resources:[8,8,8,7,8,8],growth:[7,7,8,8,8,9]},m:{goals:[7,8,8,8,8,8],feedback:[8,8,8,8,8,8],resources:[8,8,8,8,8,8],growth:[7,8,8,8,9,9]}},
-{id:2,name:'Мария С.',i:{goals:[8,8,7,7,7,7],feedback:[8,7,7,7,7,6],resources:[8,8,7,5,4,4],growth:[7,7,7,7,6,6]},m:{goals:[8,8,8,8,8,8],feedback:[8,8,8,8,8,8],resources:[8,8,8,8,8,8],growth:[8,8,8,8,8,8]}},
-{id:3,name:'Артём Л.',i:{goals:[7,7,7,7,7,7],feedback:[7,7,7,7,7,7],resources:[8,8,8,8,8,8],growth:[8,8,7,5,4,4]},m:{goals:[7,7,7,7,7,7],feedback:[7,7,7,7,7,7],resources:[8,8,8,8,8,8],growth:[8,8,8,8,8,8]}},
-{id:4,name:'Ирина Д.',i:{goals:[7,7,7,7,7,7],feedback:[8,7,6,6,6,6],resources:[8,8,8,8,8,8],growth:[7,7,7,7,7,7]},m:{goals:[7,7,7,7,7,7],feedback:[8,8,8,8,8,8],resources:[8,8,8,8,8,8],growth:[7,7,7,7,7,7]}},
-{id:5,name:'Павел Н.',i:{goals:[6,7,7,7,7,N],feedback:[7,7,7,7,7,N],resources:[7,7,7,7,7,N],growth:[6,6,7,7,7,N]},m:{goals:[7,7,7,7,7,7],feedback:[7,7,7,7,7,7],resources:[7,7,7,7,7,7],growth:[7,7,7,7,7,7]}}
-];
-// Темы и цитаты размечены вручную для макета. В продукте их выдаёт ИИ, а код проверяет, что цитата дословно есть в тексте.
-const C=[
-{id:'c1',u:2,w:4,side:'i',text:'Не понимаю, к кому обратиться за доступом в систему заявок, уже вторую неделю жду доступ.',topic:'resources',quote:'жду доступ',action:'Проверить доступы и владельца заявки'},
-{id:'c2',u:2,w:6,side:'i',text:'Доступа до сих пор нет, задачи делаю в тестовой среде.',topic:'resources',quote:'Доступа до сих пор нет',action:'Проверить доступы и владельца заявки'},
-{id:'c3',u:2,w:6,side:'m',text:'Мария быстро включилась, вопросов по работе нет.',topic:'other',quote:null,action:null},
-{id:'c4',u:3,w:6,side:'i',text:'Задания однотипные, нового мало.',topic:'growth',quote:'Задания однотипные',action:'Обсудить план развития и следующий уровень задач'},
-{id:'c5',u:3,w:6,side:'m',text:'Справляется отлично, готов к более сложным задачам.',topic:'growth',quote:'готов к более сложным задачам',action:null},
-{id:'c6',u:4,w:5,side:'i',text:'За месяц так и не получилось обсудить работу с наставником.',topic:'feedback',quote:'не получилось обсудить работу',action:'Согласовать регулярную встречу'},
-{id:'c7',u:1,w:6,side:'i',text:'Всё устраивает, нравится команда.',topic:'other',quote:null,action:null}
-];
-const st={role:'hr',tab:'overview',dim:'resources',intern:2,mentor:1,status:{},log:{},showClosed:false};
-// Демо хранит статусы и действия только в этом браузере (localStorage). Серверного хранения в публичном макете нет.
-const KEY='pulse-demo-v1';
+const st={role:'hr',tab:'overview',item:ITEMS[0].id,intern:2,mentor:1,status:{},log:{},showClosed:false};
+const KEY='pulse-demo-v2';
 try{const s=JSON.parse(localStorage.getItem(KEY)||'{}');if(s.status)st.status=s.status;if(s.log)st.log=s.log}catch(e){}
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify({status:st.status,log:st.log}))}catch(e){}};
-const $=s=>document.querySelector(s), esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const U=id=>D.find(x=>x.id===id);
-const chip=v=>v===N?'<span class="sc no">нет</span>':`<span class="sc ${v>=8?'hi':v>=6?'mid':'lo'}">${v}</span>`;
+const $=s=>document.querySelector(s),esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const U=id=>D.find(x=>x.id===id),IT=id=>ITEMS.find(x=>x.id===id);
+// Одна общая шкала 1–10: шкала 1–5 растягивается линейно, как в загрузчике. Для показа остаётся исходное «4 из 5».
+const norm=(v,mx)=>v===N?N:1+(v-1)*9/(mx-1);
+const num=v=>String(Math.round(v*10)/10).replace('.',',');
+const chip=(v,mx)=>v===N?'<span class="sc no">нет</span>':`<span class="sc ${v/mx>=.7?'hi':v/mx>.5?'mid':'lo'}">${v}<small>/${mx}</small></span>`;
 const median=a=>{const b=a.filter(x=>x!==N).sort((x,y)=>x-y);if(!b.length)return N;const h=b.length/2;return b.length%2?b[(b.length-1)/2]:(b[h-1]+b[h])/2};
+const sstat=k=>st.status[k]||'Новый',open=()=>SIG.filter(s=>sstat(s.key)!=='Закрыт');
+const TYPE={content:['p-content','Комментарий'],change:['p-change','Изменение'],divergence:['p-div','Расхождение'],low:['p-content','Стабильно низко'],data:['p-data','Нет данных']};
+const topicName=k=>DIMS[k]?DIMS[k].label:'Другое / непонятно';
 
-// Правила из стратегии (стр. 17): падение ≥2 к прошлой волне, расхождение ≥3 по одному вопросу, пропуск ответа, цитата с барьером.
-function signals(){
-  const out=[];
-  D.forEach(u=>{
-    Object.keys(DIMS).forEach(k=>{
-      ['i','m'].forEach(s=>{const a=u[s][k];for(let w=a.length-1;w>0;w--){if(a[w]!==N&&a[w-1]!==N&&a[w-1]-a[w]>=2){out.push({key:`ch-${u.id}-${k}-${s}`,type:'change',u:u.id,w,dim:k,pr:2+(a[w-1]-a[w]>=3?1:0),title:`${s==='i'?'Стажёр':'Наставник'}: оценка «${DIMS[k]}» упала с ${a[w-1]} до ${a[w]}`,why:`Падение на ${a[w-1]-a[w]} п. к предыдущей волне. Повод проверить контекст, не прогноз.`});break}}});
-      for(let w=5;w>=0;w--){const x=u.i[k][w],y=u.m[k][w];if(x!==N&&y!==N&&Math.abs(x-y)>=3){out.push({key:`dv-${u.id}-${k}`,type:'div',u:u.id,w,dim:k,pr:2,title:`Расхождение по «${DIMS[k]}»: стажёр ${x}, наставник ${y}`,why:`Разница ${Math.abs(x-y)} п. по одному вопросу и одной волне. Средний балл не считаем.`});break}}
-    });
-    ['i','m'].forEach(s=>{const miss=Object.keys(DIMS).every(k=>u[s][k][5]===N);if(miss)out.push({key:`dq-${u.id}-${s}`,type:'data',u:u.id,w:5,pr:1,title:`Нет ответа ${s==='i'?'стажёра':'наставника'} за волну «${WAVES[5]}»`,why:'Данных недостаточно. Ноль не подставляем, оценку человеку не даём.'})});
-  });
-  C.filter(c=>c.side==='i'&&c.quote&&c.topic!=='other'&&c.text.includes(c.quote)).forEach(c=>out.push({key:'ct-'+c.id,type:'content',u:c.u,w:c.w-1,dim:c.topic,pr:3,title:`Барьер в комментарии: «${c.quote}»`,why:`Тема: ${TOPICS[c.topic]}. Следующий шаг из каталога: ${c.action}.`,cid:c.id}));
-  out.sort((a,b)=>b.pr-a.pr||b.w-a.w);
-  return out;
-}
-const SIG=signals();
-const TYPE={content:['p-content','Содержание'],change:['p-change','Изменение'],div:['p-div','Расхождение'],data:['p-data','Качество данных']};
-const sstat=k=>st.status[k]||'Новый';
-const open=()=>SIG.filter(s=>sstat(s.key)!=='Закрыт');
-
-function chart(series,opts={}){
-  const W=640,H=250,L=30,R=14,T=12,B=28,x=i=>L+(W-L-R)*i/5,y=v=>T+(H-T-B)*(10-v)/9;
-  let g='';for(const v of [2,4,6,8,10])g+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-width="1"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end">${v}</text>`;
+function chart(series,label){
+  const W=640,H=250,L=30,R=14,T=12,B=28,x=i=>L+(W-L-R)*i/(NW-1),y=v=>T+(H-T-B)*(10-v)/9;
+  let g='';for(const v of [2,4,6,8,10])g+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end">${v}</text>`;
   WAVES.forEach((m,i)=>{g+=`<text x="${x(i)}" y="${H-8}" text-anchor="middle">${m}</text>`});
   series.forEach(s=>{
-    for(let i=0;i<6;i++){if(s.v[i]===N){g+=`<rect x="${x(i)-14}" y="${T}" width="28" height="${H-T-B}" fill="var(--soft)" opacity=".7"/><text x="${x(i)}" y="${T+14}" text-anchor="middle">нет</text>`}}
+    s.v.forEach((v,i)=>{if(v===N)g+=`<rect x="${x(i)-14}" y="${T}" width="28" height="${H-T-B}" fill="var(--soft)" opacity=".7"/><text x="${x(i)}" y="${T+14}" text-anchor="middle">нет</text>`});
     let d='',pen=false;s.v.forEach((v,i)=>{if(v===N){pen=false;return}d+=(pen?'L':'M')+x(i)+' '+y(v)+' ';pen=true});
     g+=`<path d="${d}" fill="none" stroke="var(--${s.c})" stroke-width="2.5" ${s.dash?'stroke-dasharray="6 4"':''} stroke-linejoin="round"/>`;
-    s.v.forEach((v,i)=>{if(v!==N)g+=`<circle cx="${x(i)}" cy="${y(v)}" r="${i===5?5:3.5}" fill="${i===5?'var(--'+s.c+')':'var(--bg)'}" stroke="var(--${s.c})" stroke-width="2"><title>${s.name}, ${WAVES[i]}: ${v}</title></circle>`});
-    const last=s.v[5]!==N?5:s.v.map((v,i)=>v!==N?i:-1).filter(i=>i>=0).pop();
-    if(last>=0)g+=`<text x="${x(last)+(last===5?-8:8)}" y="${y(s.v[last])-9}" text-anchor="${last===5?'end':'start'}" style="fill:var(--${s.c});font-weight:600">${s.v[last]}</text>`;
+    s.v.forEach((v,i)=>{if(v!==N)g+=`<circle cx="${x(i)}" cy="${y(v)}" r="${i===NW-1?5:3.5}" fill="${i===NW-1?'var(--'+s.c+')':'var(--bg)'}" stroke="var(--${s.c})" stroke-width="2"><title>${s.name}, ${WAVES[i]}: ${num(v)} из 10</title></circle>`});
   });
-  return `<div class="chartbox"><svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="${opts.label||'График по волнам'}">${g}</svg></div>`;
+  return `<div class="chartbox"><svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="${label}">${g}</svg></div>`;
 }
-const legend=()=>`<div class="legend"><span><i style="background:var(--intern)"></i>Стажёры</span><span><i style="background:none;height:0;border-top:3px dashed var(--mentor)"></i>Наставники</span></div>`;
-const dimSel=()=>`<select id="dimSel" aria-label="Вопрос">${Object.entries(DIMS).map(([k,v])=>`<option value="${k}" ${k===st.dim?'selected':''}>${v}</option>`).join('')}</select>`;
+const legend=it=>`<div class="legend">${it.i?'<span><i style="background:var(--intern)"></i>Стажёр: '+esc(DIMS[it.i].label)+'</span>':''}${it.m?'<span><i style="background:none;height:0;border-top:3px dashed var(--mentor)"></i>Наставник: '+esc(DIMS[it.m].label)+'</span>':''}</div>`;
+const itemSel=()=>`<select id="itemSel" aria-label="Вопрос">${ITEMS.map(k=>`<option value="${k.id}" ${k.id===st.item?'selected':''}>${esc(k.label)}</option>`).join('')}</select>`;
+const series=(it,fn)=>{const o=[];if(it.i)o.push({v:fn('i',it.i),c:'intern',name:'Стажёр'});if(it.m)o.push({v:fn('m',it.m),c:'mentor',name:'Наставник',dash:1});return o};
+const cellPair=(u,it,w)=>{const a=it.i?chip(u.i[it.i][w],DIMS[it.i].max):'<span class="sc no">—</span>',b=it.m?chip(u.m[it.m][w],DIMS[it.m].max):'<span class="sc no">—</span>';return `${a}<span class="sep">/</span>${b}`};
 
 function overview(){
-  const n=D.filter(u=>u.i.goals[5]!==N).length,nm=D.filter(u=>u.m.goals[5]!==N).length,o=open();
-  const med=s=>WAVES.map((_,w)=>median(D.map(u=>u[s][st.dim][w])));
-  const cnt={};C.forEach(c=>{if(c.topic!=='other')cnt[c.topic]=(cnt[c.topic]||0)+1});
+  const it=IT(st.item),last=NW-1;
+  const ni=D.filter(u=>Object.values(u.i).some(a=>a[last]!==N)).length,nm=D.filter(u=>Object.values(u.m).some(a=>a[last]!==N)).length,o=open();
+  const ser=series(it,(s,d)=>WAVES.map((_,w)=>median(D.map(u=>norm(u[s][d][w],DIMS[d].max)))));
+  const cnt={};C.forEach(c=>{if(c.side==='i'&&c.topic!=='other')cnt[c.topic]=(cnt[c.topic]||0)+1});
   const mx=Math.max(1,...Object.values(cnt));
   return `<div class="grid g3">
-   <div class="card kpi"><div class="l">Ответили в волне «${WAVES[5]}»</div><div class="v num">${n+nm} из ${D.length*2}</div><div class="s">стажёры ${n}/${D.length} · наставники ${nm}/${D.length}</div></div>
-   <div class="card kpi"><div class="l">Требуют внимания</div><div class="v num">${o.length}</div><div class="s">${o.filter(s=>s.type==='content').length} содержательных · ${o.filter(s=>s.type==='change'||s.type==='div').length} по динамике · ${o.filter(s=>s.type==='data').length} по данным</div></div>
-   <div class="card kpi"><div class="l">Последнее обновление</div><div class="v num">17.11 14:05</div><div class="s">новый ответ из внешней формы · пример</div></div>
+   <div class="card kpi"><div class="l">Ответили в волне «${WAVES[last]}»</div><div class="v num">${ni+nm} из ${D.length*2}</div><div class="s">стажёры ${ni}/${D.length} · наставники ${nm}/${D.length}</div></div>
+   <div class="card kpi"><div class="l">Требуют внимания</div><div class="v num">${o.length}</div><div class="s">${o.filter(s=>s.type==='content').length} комментариев · ${o.filter(s=>['change','divergence','low'].includes(s.type)).length} по динамике · ${o.filter(s=>s.type==='data').length} по данным</div></div>
+   <div class="card kpi"><div class="l">Источник данных</div><div class="v num">2 таблицы</div><div class="s">ответы стажёров и ответы наставников, ${NW} месяцев</div></div>
   </div>
   <div class="grid g2" style="margin-top:16px">
-   <div class="card"><div class="head"><h2>Динамика по волнам</h2><div class="ctrl">${dimSel()}</div></div>${legend()}
-     ${chart([{v:med('i'),c:'intern',name:'Стажёры (медиана)'},{v:med('m'),c:'mentor',name:'Наставники (медиана)',dash:1}],{label:'Медиана оценок стажёров и наставников по волнам'})}
-     <div class="s" style="color:var(--muted);font-size:12px">Медиана по ответившим; в когорте-примере 5 человек, поэтому n показан всегда. Две линии, без общего среднего.</div></div>
-   <div class="card"><h2>Темы в комментариях</h2><p style="color:var(--muted);margin:4px 0 12px;font-size:13px">Тему и цитату определяет ИИ, цитату проверяет код.</p>
-     ${Object.entries(cnt).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div class="bar"><span>${TOPICS[k]}</span><div class="tr"><i style="width:${v/mx*100}%"></i></div><b class="num">${v}</b></div>`).join('')}
-     <div class="note" style="margin-top:14px">Единичные случаи не складываем в «процент недовольных»: на малой группе показываем число комментариев.</div></div>
-  </div>`;
+   <div class="card"><div class="head"><h2>Динамика по месяцам</h2><div class="ctrl">${itemSel()}</div></div>${legend(it)}
+     ${chart(ser,'Медиана оценок по месяцам')}
+     <div class="s" style="color:var(--muted);font-size:12px">Оценки приведены к шкале 1–10. Медиана по ответившим, участников мало, поэтому средний балл не считаем.</div></div>
+   <div class="card"><h2>Темы в комментариях стажёров</h2><p style="color:var(--muted);margin:4px 0 12px;font-size:13px">Тему и цитату определяет разборщик, цитату проверяет код.</p>
+     ${Object.entries(cnt).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div class="bar"><span>${esc(topicName(k))}</span><div class="tr"><i style="width:${v/mx*100}%"></i></div><b class="num">${v}</b></div>`).join('')}
+     <div class="note" style="margin-top:14px">Единичные случаи не превращаем в «процент недовольных»: на малой группе показываем число комментариев.</div></div>
+  </div>
+  <div class="card" style="margin-top:16px"><h2>Все стажёры по вопросу «${esc(it.label)}»</h2><div class="scroll"><table><tr><th>Стажёр · наставник</th>${WAVES.map(w=>`<th>${w}</th>`).join('')}</tr>${D.map(u=>`<tr><td><button class="open" data-open="${u.id}">${esc(u.id)}</button> · ${esc(u.mentor)}</td>${WAVES.map((_,w)=>`<td class="num">${cellPair(u,it,w)}</td>`).join('')}</tr>`).join('')}</table></div>
+   <div class="m" style="color:var(--muted);font-size:12px;margin-top:8px">В ячейке: стажёр / наставник, в исходных шкалах. Зелёный: от 70 % максимума, жёлтый: больше 50 %, красный: до 50 %.</div></div>`;
 }
 function queue(){
   const o=st.showClosed?SIG:open();
-  return `<div class="card"><div class="head"><h2>Очередь внимания · ${open().length} активных</h2><label class="chk"><input type="checkbox" id="showClosed" ${st.showClosed?'checked':''}>Показать закрытые (архив)</label></div><p class="m" style="color:var(--muted);font-size:13px;margin:0 0 8px">Порядок: фиксированный вес типа, затем более поздняя волна. Повтор и срок без реакции пока не учитываются.</p><div class="list">
-  ${o.length?'':'<div class="empty">Активных случаев нет.</div>'}${o.map(s=>{const t=TYPE[s.type],u=U(s.u);return `<div class="row"><div><span class="pill ${t[0]}">${t[1]}</span> <span class="t">${esc(u.name)}</span> <span class="m">· волна «${WAVES[s.w]}»</span><div class="t" style="font-weight:500;margin-top:4px">${esc(s.title)}</div><div class="m">${esc(s.why)}</div></div>
+  return `<div class="card"><div class="head"><h2>Очередь внимания · ${open().length} активных</h2><label class="chk"><input type="checkbox" id="showClosed" ${st.showClosed?'checked':''}>Показать закрытые</label></div><p class="m" style="color:var(--muted);font-size:13px;margin:0 0 8px">Порядок: вес типа сигнала, затем более поздний месяц. Сигнал означает «проверить», а не оценку человека.</p><div class="list">
+  ${o.length?'':'<div class="empty">Активных случаев нет.</div>'}${o.map(s=>{const t=TYPE[s.type];return `<div class="row"><div><span class="pill ${t[0]}">${t[1]}</span> <span class="t">${esc(s.u)}</span> <span class="m">· ${WAVES[s.w]}</span><div class="t" style="font-weight:500;margin-top:4px">${esc(s.title)}</div><div class="m">${esc(s.why)}</div></div>
    <div class="ctrl"><select data-st="${s.key}" aria-label="Статус">${['Новый','В работе','Закрыт'].map(x=>`<option ${sstat(s.key)===x?'selected':''}>${x}</option>`).join('')}</select><button class="open" data-open="${s.u}">Карточка</button></div></div>`}).join('')}
   </div></div>`;
 }
 function card(id,mentorView){
-  const u=U(id),sigs=SIG.filter(s=>s.u===id),cm=C.filter(c=>c.u===id),log=st.log[id]||[];
-  const tbl=`<div class="scroll"><table><tr><th>Вопрос (стажёр / наставник)</th>${WAVES.map(w=>`<th>${w}</th>`).join('')}</tr>${Object.entries(DIMS).map(([k,l])=>`<tr><td>${l}</td>${WAVES.map((_,w)=>{const a=u.i[k][w],b=u.m[k][w];const low=a!==N&&b!==N&&Math.abs(a-b)>=3||(a!==N&&w>0&&u.i[k][w-1]!==N&&u.i[k][w-1]-a>=2);return `<td class="${low?'sig':''} num">${chip(a)}<span class="sep">/</span>${chip(b)}</td>`}).join('')}</tr>`).join('')}</table></div><div class="scale"><span><span class="sc hi">8–10</span>высокая</span><span><span class="sc mid">6–7</span>средняя</span><span><span class="sc lo">1–5</span>низкая</span><span><span class="sc no">нет</span>ответа нет</span><span><span class="sc" style="box-shadow:inset 0 0 0 1px var(--crit)">&nbsp;</span>рамка: по ячейке есть сигнал</span></div>`;
-  const comments=mentorView?`<div class="note">Тексты стажёра скрыты политикой доступа. Показывать ли их наставнику, решает HR (открытый вопрос).</div>`:
+  const u=U(id),sigs=SIG.filter(s=>s.u===id),cm=C.filter(c=>c.u===id),log=st.log[id]||[],it=IT(st.item);
+  const hot=(k,w)=>sigs.some(s=>s.w===w&&(s.dim===k.id||s.dim===k.i||s.dim===k.m));
+  const tbl=`<div class="scroll"><table><tr><th>Вопрос (стажёр / наставник)</th>${WAVES.map(w=>`<th>${w}</th>`).join('')}</tr>${ITEMS.map(k=>`<tr><td>${esc(k.label)}</td>${WAVES.map((_,w)=>`<td class="${hot(k,w)?'sig':''} num">${cellPair(u,k,w)}</td>`).join('')}</tr>`).join('')}</table></div><div class="scale"><span><span class="sc hi">≥70%</span>высокая</span><span><span class="sc mid">&gt;50%</span>средняя</span><span><span class="sc lo">≤50%</span>низкая</span><span><span class="sc no">нет</span>ответа нет</span><span><span class="sc" style="box-shadow:inset 0 0 0 1px var(--crit)">&nbsp;</span>рамка: по ячейке есть сигнал</span></div>`;
+  const comments=mentorView?`<div class="note">Тексты стажёра скрыты политикой доступа. Показывать ли их наставнику, решает HR.</div>`:
     (cm.length?cm.map(c=>{const ok=c.quote&&c.text.includes(c.quote);const t=ok?esc(c.text).replace(esc(c.quote),'<mark>'+esc(c.quote)+'</mark>'):esc(c.text);
-      return `<div class="quote"><div class="who ${c.side}">${c.side==='i'?'Стажёр':'Наставник'} · ${WAVES[c.w-1]}</div><div>${t}</div><div style="margin-top:4px"><span class="pill p-data">Тема: ${TOPICS[c.topic]}</span> ${c.quote?'<span class="pill p-ok">цитата найдена в источнике</span>':''}</div></div>`}).join(''):'<div class="empty">Комментариев нет.</div>');
+      return `<div class="quote"><div class="who ${c.side}">${c.side==='i'?'Стажёр':'Наставник'} · ${WAVES[c.w]}</div><div>${t}</div><div style="margin-top:4px"><span class="pill p-data">Тема: ${esc(topicName(c.topic))}</span> ${ok?'<span class="pill p-ok">цитата найдена в источнике</span>':''}</div></div>`}).join(''):'<div class="empty">Комментариев нет.</div>');
   return `${mentorView?'':'<button class="back" id="back">← Очередь внимания</button>'}
-  <div class="grid g2"><div class="card"><div class="head"><div><h2>${esc(u.name)}</h2><span style="color:var(--muted);font-size:13px">Наставник назначен (пример) · ${WAVES.length} волн</span></div><div class="ctrl">${dimSel()}</div></div>${legend()}
-   ${chart([{v:u.i[st.dim],c:'intern',name:'Стажёр'},{v:u.m[st.dim],c:'mentor',name:'Наставник',dash:1}],{label:'Оценки стажёра и наставника'})}
-   <h3 style="margin:14px 0 6px">Все ответы по волнам</h3>${tbl}</div>
+  <div class="grid g2"><div class="card"><div class="head"><div><h2>${esc(u.id)}</h2><span style="color:var(--muted);font-size:13px">Наставник ${esc(u.mentor)} · ${NW} месяцев</span></div><div class="ctrl">${itemSel()}</div></div>${legend(it)}
+   ${chart(series(it,(s,d)=>u[s][d].map(v=>norm(v,DIMS[d].max))),'Оценки стажёра и наставника')}
+   <h3 style="margin:14px 0 6px">Все ответы по месяцам</h3>${tbl}</div>
    <div class="grid" style="align-content:start">
-    <div class="card"><h2>Сигналы</h2>${sigs.length?sigs.map(s=>mentorView&&s.type==='content'?`<div class="row"><div><span class="pill p-data">Комментарий</span><div style="margin-top:4px">Есть вопрос по теме «${esc(TOPICS[s.dim])}». Текст и цитата доступны только HR.</div></div></div>`:`<div class="row"><div><span class="pill ${TYPE[s.type][0]}">${TYPE[s.type][1]}</span><div style="margin-top:4px">${esc(s.title)}</div><div class="m">${esc(s.why)}</div></div></div>`).join(''):'<div class="empty">Сигналов нет.</div>'}</div>
+    <div class="card"><h2>Сигналы</h2>${sigs.length?sigs.map(s=>mentorView&&s.type==='content'?`<div class="row"><div><span class="pill p-data">Комментарий</span><div style="margin-top:4px">Есть вопрос по теме «${esc(topicName(s.dim))}». Текст и цитата доступны только HR.</div></div></div>`:`<div class="row"><div><span class="pill ${TYPE[s.type][0]}">${TYPE[s.type][1]}</span><div style="margin-top:4px">${esc(s.title)}</div><div class="m">${esc(s.why)}</div></div></div>`).join(''):'<div class="empty">Сигналов нет.</div>'}</div>
     <div class="card"><h2>Комментарии</h2>${comments}</div>
     ${mentorView?'':`<div class="card"><h2>Действие HR</h2>${log.map(l=>`<div class="quote"><div class="who">${esc(l.owner)} · до ${esc(l.due)}</div>${esc(l.note)}</div>`).join('')}
      <form class="form" id="actForm"><input id="actOwner" placeholder="Ответственный" required><input id="actDue" type="date" required><textarea id="actNote" placeholder="Что делаем и почему" required></textarea><button class="btn" type="submit">Записать действие</button></form></div>`}
    </div></div>`;
 }
+function signalsTab(){
+  return `<div class="card"><h2>Каталог сигналов</h2><p style="color:var(--muted);font-size:13px;margin:4px 0 12px">Сигналы мы определяем сами: для каждого указано, когда он срабатывает, почему важен HR и что HR делает дальше. Расчёт идёт по простым правилам, без ИИ, поэтому результат можно проверить вручную. Пороги: падение ${DATA.thr.drop}, расхождение ${DATA.thr.divergence}, низкая оценка не выше ${DATA.thr.low} ${DATA.thr.low_months} месяца подряд (шкала 1–10).</p>
+  <div class="list">${Object.values(INFO).map(s=>`<div class="row"><div><div class="t">${esc(s.name)}</div><div class="m"><b>Когда:</b> ${esc(s.rule)}</div><div class="m"><b>Почему важно:</b> ${esc(s.why)}</div><div class="m"><b>Что делает HR:</b> ${esc(s.action)}</div></div></div>`).join('')}</div></div>`;
+}
+function dataTab(){
+  const tb=(h,rows)=>`<div class="scroll"><table><tr>${h.map(x=>`<th>${esc(x)}</th>`).join('')}</tr>${rows.map(r=>`<tr>${r.map(x=>`<td>${x===null?'<span class="sc no">пусто</span>':esc(x)}</td>`).join('')}</tr>`).join('')}</table></div>`;
+  return `<div class="card"><h2>Какие данные загружаем</h2><p style="color:var(--muted);font-size:13px;margin:4px 0 12px">Формат из вебинара: две таблицы Excel, ответы стажёров и ответы наставников за один период. ${D.length} стажёров, ${D.length} наставников, ${NW} ежемесячных опросов, анонимные ID, один наставник на одного стажёра. Вопросы у сторон разные и не меняются между месяцами. Ниже первые строки двух таблиц.</p>
+  <h3 style="margin:12px 0 6px">Таблица 1. Ответы стажёров</h3>${tb(DATA.sample.i.head,DATA.sample.i.rows)}
+  <h3 style="margin:16px 0 6px">Таблица 2. Ответы наставников</h3>${tb(DATA.sample.m.head,DATA.sample.m.rows)}
+  <div class="note" style="margin-top:14px"><b>Как читаем:</b> пара «стажёр и наставник» определяется по ID. Шкалы приводятся к 1–10. Пустая ячейка остаётся пропуском, ноль мы не подставляем. Повторная загрузка не создаёт дублей. Если в день финала колонки называются иначе, меняется только файл сопоставления колонок.</div></div>`;
+}
 function render(){
   const hr=st.role==='hr';
   $('#mentorPick').hidden=hr;
   $('#roleHr').setAttribute('aria-pressed',hr);$('#roleMentor').setAttribute('aria-pressed',!hr);
-  const tabs=hr?[['overview','Обзор программы'],['queue','Очередь внимания'+`<span class="badge" aria-label="${open().length} активных">${open().length}</span>`],['intern','Карточка стажёра']]:[['intern','Мой стажёр']];
+  const tabs=hr?[['overview','Обзор программы'],['queue','Очередь внимания'+`<span class="badge" aria-label="${open().length} активных">${open().length}</span>`],['intern','Карточка стажёра'],['signals','Сигналы'],['data','Данные']]:[['intern','Мой стажёр']];
   if(!hr)st.tab='intern';
   $('#tabs').innerHTML=tabs.map(([k,l])=>`<button role="tab" id="tab-${k}" aria-controls="view" data-tab="${k}" aria-selected="${st.tab===k}" tabindex="${st.tab===k?0:-1}">${l}</button>`).join('');
   const v=$('#view');v.setAttribute('aria-labelledby','tab-'+st.tab);
-  const sc=$('#showClosed');
-  if(!hr){st.tab='intern';v.innerHTML=card(st.mentor,true)}
-  else v.innerHTML=st.tab==='overview'?overview():st.tab==='queue'?queue():card(st.intern,false);
-  const ds=$('#dimSel');if(ds)ds.onchange=e=>{st.dim=e.target.value;render()};
+  const views={overview,queue,signals:signalsTab,data:dataTab};
+  if(!hr)v.innerHTML=card(st.mentor,true);
+  else v.innerHTML=views[st.tab]?views[st.tab]():card(st.intern,false);
+  const ds=$('#itemSel');if(ds)ds.onchange=e=>{st.item=e.target.value;render()};
   const sc2=$('#showClosed');if(sc2)sc2.onchange=e=>{st.showClosed=e.target.checked;render();const c=$('#showClosed');if(c)c.focus()};
   v.querySelectorAll('[data-st]').forEach(s=>s.onchange=e=>{st.status[s.dataset.st]=e.target.value;save();render()});
-  v.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>{st.intern=+b.dataset.open;st.tab='intern';location.hash='intern/'+st.intern});
+  v.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>{st.intern=b.dataset.open;st.tab='intern';location.hash='intern/'+st.intern});
   const bk=$('#back');if(bk)bk.onclick=()=>{st.tab='queue';location.hash='queue'};
   const f=$('#actForm');if(f)f.onsubmit=e=>{e.preventDefault();const btn=f.querySelector('button');if(btn.disabled)return;btn.disabled=true;(st.log[st.intern]=st.log[st.intern]||[]).push({owner:$('#actOwner').value,due:$('#actDue').value,note:$('#actNote').value});save();render()};
 }
@@ -267,14 +253,13 @@ $('#tabs').onkeydown=e=>{
 };
 $('#roleHr').onclick=()=>{st.role='hr';st.tab='overview';render()};
 $('#roleMentor').onclick=()=>{st.role='mentor';render()};
-$('#mentorPick').innerHTML=D.map(u=>`<option value="${u.id}">Наставник: ${esc(u.name)}</option>`).join('');
-$('#mentorPick').onchange=e=>{st.mentor=+e.target.value;render()};
-function fromHash(){const m=location.hash.slice(1).split('/'),h=m[0];
-  if(['overview','queue','intern'].includes(h))st.tab=h;
-  if(h==='intern'&&m[1]&&U(+m[1])){st.intern=+m[1];if(st.role==='mentor')st.mentor=st.intern}
-  if(h==='mentor'){st.role='mentor';if(m[1]&&U(+m[1]))st.mentor=+m[1]}
+$('#mentorPick').innerHTML=D.map(u=>`<option value="${u.id}">Наставник ${esc(u.mentor)}</option>`).join('');
+$('#mentorPick').onchange=e=>{st.mentor=e.target.value;render()};
+function fromHash(){const m=decodeURIComponent(location.hash.slice(1)).split('/'),h=m[0];
+  if(['overview','queue','intern','signals','data'].includes(h))st.tab=h;
+  if(h==='intern'&&m[1]&&U(m[1])){st.intern=m[1];if(st.role==='mentor')st.mentor=st.intern}
+  if(h==='mentor'){st.role='mentor';if(m[1]&&U(m[1]))st.mentor=m[1]}
   if(h==='hr')st.role='hr'}
 window.addEventListener('hashchange',()=>{fromHash();render()});
-fromHash();render();
+st.intern=D[1].id;st.mentor=D[0].id;fromHash();render();
 </script>
-</body></html>

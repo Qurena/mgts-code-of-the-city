@@ -1,0 +1,134 @@
+<title>Пульс стажировки</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Макет дашборда HR: обзор → очередь внимания → карточка стажёра (страница 17 стратегии).
+   Оформление по токенам сайта studchamp.mgts.ru: синий #008AE0, графит #1D2023, серая шкала, радиусы 8/12/16, шрифты MTS с запасными.
+   Файлы шрифтов MTS не копируются (они принадлежат МГТС/МТС): без них берётся Segoe UI или системный шрифт.
+   Стажёр: синяя сплошная линия. Наставник: графитовая пунктирная. Оранжевый и красный только для статусов сигналов. */
+:root{
+  /* тёмная панель по референсам: стеклянные карточки, градиент синий #008AE0 → фиолетовый #7B61FF (оба из палитры МГТС) */
+  --bg:#0A0D16; --glow-a:rgba(0,138,224,.22); --glow-b:rgba(123,97,255,.20);
+  --surface:rgba(255,255,255,.045); --ink:#F2F5FA; --muted:#A3AEC2; --line:rgba(255,255,255,.10); --soft:rgba(255,255,255,.07); --opt-bg:#161C2E;
+  --brand:#5CC0FF; --brand-strong:linear-gradient(135deg,#0068AD 0%,#5B3FD9 100%); --brand-ink:#FFFFFF; --grad:linear-gradient(135deg,#0068AD 0%,#5B3FD9 100%);
+  --intern:#5CC0FF; --mentor:#C9D2E3;
+  --crit:#FF9B7A; --warn:#FAC031; --ok:#4BDB7A;
+  --crit-bg:rgba(255,138,92,.16); --warn-bg:rgba(250,192,49,.14); --ok-bg:rgba(75,219,122,.14); --info-bg:rgba(0,138,224,.18);
+  --font-head:'MTS Wide','Segoe UI',system-ui,sans-serif; --font-body:'MTS Compact','Segoe UI',system-ui,sans-serif;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]){
+  --bg:#EEF1F8; --glow-a:rgba(0,138,224,.16); --glow-b:rgba(123,97,255,.14);
+  --surface:rgba(255,255,255,.85); --ink:#1D2023; --muted:#566074; --line:rgba(29,32,35,.10); --soft:rgba(29,32,35,.05); --opt-bg:#FFFFFF;
+  --brand:#0072BD; --intern:#0072BD; --mentor:#1D2023;
+  --crit:#B23509; --warn:#7A5600; --ok:#14783A;
+  --crit-bg:#FFE5DC; --warn-bg:#FFF1CC; --ok-bg:#E3F9EA; --info-bg:#E6F4FC; color-scheme:light}}
+:root[data-theme="light"]{
+  --bg:#EEF1F8; --glow-a:rgba(0,138,224,.16); --glow-b:rgba(123,97,255,.14);
+  --surface:rgba(255,255,255,.85); --ink:#1D2023; --muted:#566074; --line:rgba(29,32,35,.10); --soft:rgba(29,32,35,.05); --opt-bg:#FFFFFF;
+  --brand:#0072BD; --intern:#0072BD; --mentor:#1D2023;
+  --crit:#B23509; --warn:#7A5600; --ok:#14783A;
+  --crit-bg:#FFE5DC; --warn-bg:#FFF1CC; --ok-bg:#E3F9EA; --info-bg:#E6F4FC; color-scheme:light}
+*{box-sizing:border-box}
+body{background:var(--bg) radial-gradient(900px 500px at 85% -10%,var(--glow-b),transparent 60%) fixed;background-image:radial-gradient(900px 500px at 85% -10%,var(--glow-b),transparent 60%),radial-gradient(800px 500px at 10% 0%,var(--glow-a),transparent 60%);background-attachment:fixed;color:var(--ink);font:14px/1.5 var(--font-body);padding-block:0 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1120px;margin:0 auto}
+h1,h2,h3{font-family:var(--font-head);margin:0;text-wrap:balance}
+h2{font-size:18px} h3{font-size:14px}
+.num{font-variant-numeric:tabular-nums}
+.demo{background:var(--warn-bg);color:var(--warn);font-size:12px;padding:6px 12px;margin:0 calc(-1*max(16px,env(safe-area-inset-left,0px)));text-align:center}
+header{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center;justify-content:space-between;padding:16px 0 12px}
+.logo{display:flex;align-items:baseline;gap:10px}
+.logo h1{font-size:22px;font-weight:700;color:var(--brand)}
+.logo span{color:var(--muted);font-size:12px}
+.sitelink{color:var(--brand);font-size:13px;text-decoration:none;white-space:nowrap}
+.sitelink:hover{text-decoration:underline}
+.ctrl{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface);backdrop-filter:blur(14px)}
+.seg button{border:0;background:none;color:var(--muted);padding:7px 12px;font:500 13px var(--font-body);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--brand-strong);color:var(--brand-ink)}
+button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible,textarea:focus-visible{outline:2px solid var(--intern);outline-offset:2px}
+select,input,textarea{font:13px var(--font-body);color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 10px;min-width:0}
+nav.tabs{display:inline-flex;gap:4px;padding:5px;margin-bottom:20px;max-width:100%;overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:16px;backdrop-filter:blur(14px)}
+nav.tabs button{border:0;background:none;color:var(--muted);padding:9px 16px;font:600 14px var(--font-head);cursor:pointer;border-radius:12px;white-space:nowrap}
+nav.tabs button:hover{color:var(--ink)}
+nav.tabs button[aria-selected="true"]{color:var(--brand-ink);background:var(--grad)}
+.badge{display:inline-block;min-width:22px;padding:1px 7px;border-radius:10px;background:var(--crit);color:var(--bg);font-size:13px;font-weight:700;text-align:center;margin-left:6px}
+nav.tabs button{min-height:44px}
+button,select{min-height:44px}
+.seg button{min-height:44px}
+.chartbox{overflow-x:auto}
+.chartbox svg{min-width:560px}
+.chk{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+.chk input{width:20px;height:20px;min-height:0;padding:0}
+.grid{display:grid;gap:16px}
+.g3{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.g2{grid-template-columns:minmax(0,3fr) minmax(0,2fr);align-items:start}
+@media(max-width:820px){.g2{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:20px;min-width:0;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.g3>.kpi:first-child{background:var(--grad);border-color:transparent;color:#fff}
+.g3>.kpi:first-child .l,.g3>.kpi:first-child .s{color:rgba(255,255,255,.88)}
+.kpi .v{font:700 32px var(--font-head);margin-top:6px}
+.kpi .l{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+.kpi .s{color:var(--muted);font-size:12px}
+.head{display:flex;flex-wrap:wrap;gap:8px 16px;justify-content:space-between;align-items:center;margin-bottom:12px}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--muted)}
+.legend i{display:inline-block;width:18px;height:3px;vertical-align:middle;margin-right:6px;border-radius:2px}
+svg text{fill:var(--muted);font:13px var(--font-body)}
+.pill{display:inline-block;font-size:12px;font-weight:600;padding:2px 8px;border-radius:10px;white-space:nowrap}
+.p-content{background:var(--crit-bg);color:var(--crit)}
+.p-change{background:var(--warn-bg);color:var(--warn)}
+.p-div{background:var(--info-bg);color:var(--intern)}
+.p-data{background:var(--soft);color:var(--muted)}
+.p-ok{background:var(--ok-bg);color:var(--ok)}
+.list{display:flex;flex-direction:column}
+.row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;padding:12px 0;border-top:1px solid var(--line);align-items:center}
+.row:first-child{border-top:0}
+.row .t{font-weight:600}
+.row .m{color:var(--muted);font-size:13px}
+.row button.open{border:1px solid var(--line);background:var(--soft);color:var(--ink);border-radius:10px;padding:8px 12px;font:500 13px var(--font-body);cursor:pointer}
+.bar{display:grid;grid-template-columns:minmax(90px,150px) 1fr 24px;gap:8px;align-items:center;margin:6px 0;font-size:13px}
+.bar div.tr{background:var(--soft);height:10px;border-radius:5px;overflow:hidden}
+.bar div.tr i{display:block;height:100%;background:var(--grad);border-radius:5px}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:6px 8px;text-align:center;border-bottom:1px solid var(--line)}
+th:first-child,td:first-child{text-align:left}
+th{color:var(--muted);font-weight:500}
+/* Выпадающие списки: фон пунктов должен быть сплошным, иначе браузер рисует белый фон под светлым текстом */
+select option,select optgroup{background:var(--opt-bg);color:var(--ink)}
+/* Баллы в таблице: цвет по уровню оценки. Это подсказка для чтения, а не порог сигнала */
+.sc{display:inline-block;min-width:22px;padding:2px 5px;border-radius:8px;font-weight:700;font-variant-numeric:tabular-nums;text-align:center;line-height:1.35}
+td.num{white-space:nowrap;padding-left:3px;padding-right:3px}
+.sc.hi{background:var(--ok-bg);color:var(--ok)}
+.sc.mid{background:var(--warn-bg);color:var(--warn)}
+.sc.lo{background:var(--crit-bg);color:var(--crit)}
+.sc.no{background:transparent;color:var(--muted);font-weight:500;border:1px dashed var(--line)}
+.sep{color:var(--muted);margin:0 1px;font-size:12px}
+td.sig{box-shadow:inset 0 0 0 1px var(--crit);border-radius:10px}
+.scale{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:12px;font-size:12px;color:var(--muted);align-items:center}
+.scale .sc{min-width:0;padding:1px 7px;margin-right:4px}
+.scroll{overflow-x:auto}
+.sc small{opacity:.7;font-weight:500;font-size:.8em}
+.quote{border-left:3px solid var(--line);padding:2px 0 2px 12px;margin:8px 0}
+.quote mark{background:var(--warn-bg);color:var(--ink);padding:0 2px;border-radius:2px}
+.who{font-size:12px;font-weight:600}
+.who.i{color:var(--intern)} .who.m{color:var(--mentor)}
+.note{background:var(--info-bg);color:var(--ink);border-radius:14px;padding:12px 14px;font-size:13px}
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:8px}
+.form textarea{grid-column:1/-1;min-height:56px;resize:vertical}
+.btn{background:var(--brand-strong);color:var(--brand-ink);border:0;border-radius:12px;padding:8px 14px;font:600 13px var(--font-body);cursor:pointer}
+.empty{color:var(--muted);padding:12px 0}
+.back{background:none;border:0;color:var(--intern);cursor:pointer;font:500 13px var(--font-body);padding:0;margin-bottom:10px}
+</style>
+
+<div class="demo">Макет интерфейса на выдуманных данных в формате вебинара: две таблицы Excel, 5 пар, 6 месяцев. Показатели посчитаны настоящим кодом прототипа. Настоящие данные МГТС появятся на финале.</div>
+<div class="wrap">
+<header>
+  <div class="logo"><h1>Пульс стажировки</h1><span>формат вебинара · 5 пар · 6 месяцев</span><a class="sitelink" href="index.html">← О команде</a></div>
+  <div class="ctrl">
+    <div class="seg" role="group" aria-label="Роль"><button id="roleHr" aria-pressed="true">HR</button><button id="roleMentor" aria-pressed="false">Наставник</button></div>
+    <select id="mentorPick" aria-label="Чей наставник" hidden></select>
+  </div>
+</header>
+<nav class="tabs" role="tablist" id="tabs" aria-label="Разделы"></nav>
+<main id="view" role="tabpanel"></main>
+</div>
+

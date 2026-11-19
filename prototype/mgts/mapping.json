@@ -1,0 +1,28 @@
+{
+  "_help": "Формат вебинара: две таблицы Excel (стажёры, наставники), анонимные ID, разные вопросы у сторон. Колонки с парой нет: наставник и стажёр сопоставляются по числу в ID (С-03 и Н-03). Пары вопросов для сравнения заданы в survey.json (comparisons). В день финала: python inspect_data.py <файл> покажет колонки, затем поправьте названия ниже.",
+  "sources": [
+    {
+      "name": "intern", "side": "intern", "file": "data/Ответы_стажёров.xlsx",
+      "columns": {"person": "ID стажёра", "timestamp": "Дата ответа"},
+      "period": {"column": "Дата ответа", "from_date": {"start": "2026-06-01"}, "default": "last"},
+      "scores": [
+        {"column": "Насколько вам интересны задачи (1-5)", "dimension": "interest", "scale": [1, 5]},
+        {"column": "Насколько понятны задачи (1-5)", "dimension": "clarity", "scale": [1, 5]},
+        {"column": "Получаете ли вы поддержку наставника (1-5)", "dimension": "support", "scale": [1, 5]},
+        {"column": "Хватает ли доступов и инструментов (1-5)", "dimension": "access", "scale": [1, 5]}
+      ],
+      "comments": ["Что мешает работать?"]
+    },
+    {
+      "name": "mentor", "side": "mentor", "file": "data/Ответы_наставников.xlsx",
+      "columns": {"person": "ID наставника", "timestamp": "Дата ответа"},
+      "period": {"column": "Дата ответа", "from_date": {"start": "2026-06-01"}, "default": "last"},
+      "scores": [
+        {"column": "Как стажёр справляется с задачами (1-10)", "dimension": "performance"},
+        {"column": "Насколько оперативно (1-10)", "dimension": "speed"},
+        {"column": "Насколько самостоятельно (1-10)", "dimension": "independence"}
+      ],
+      "comments": ["Комментарий наставника"]
+    }
+  ]
+}
