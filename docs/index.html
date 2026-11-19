@@ -202,7 +202,7 @@ footer{color:var(--muted);font-size:14px;padding:4px 8px 0}
     <a href="#interviews"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></svg><span>Интервью</span></a>
     <a href="#team"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6M16 5a3.5 3.5 0 010 6.5M18 14.5c2 .7 3.5 2.6 3.5 5.5"/></svg><span>Команда</span></a>
   </nav>
-  <div class="promo"><b>Макет дашборда</b><p>Пять экранов на выдуманных данных в формате вебинара.</p><a class="btn" href="dashboard-prototype.html">Открыть макет</a><a class="btn ghost" href="https://qurena.vps.webdock.cloud/" rel="noopener" style="margin-top:8px">Живой дашборд</a></div>
+  <div class="promo"><b>Макет дашборда</b><p>Три экрана на выдуманных данных в формате вебинара.</p><a class="btn" href="dashboard-prototype.html">Открыть макет</a><a class="btn ghost" href="https://qurena.vps.webdock.cloud/" rel="noopener" style="margin-top:8px">Живой дашборд</a></div>
 </aside>
 
 <main>
@@ -254,10 +254,10 @@ footer{color:var(--muted);font-size:14px;padding:4px 8px 0}
     </section>
 
     <section id="data" class="card" aria-labelledby="dath">
-      <h2 id="dath">Какие данные мы получаем<span class="tag">Со слов организаторов</span></h2>
-      <p class="sub">Формат описали на вебинаре 13 ноября. Точные названия колонок и вопросов выдадут на финале. Ниже то, что известно, и то, как программа примет любой вариант.</p>
+      <h2 id="dath">Какие данные мы получаем<span class="tag">Допущения до финала</span></h2>
+      <p class="sub">Формат описали на вебинаре 13 ноября. Точные названия колонок, шкалу и формулировки вопросов выдадут только на финале. Всё, что не названо, мы предположили (справа) и заложили в пример и в макет. На финале сверим с выданными файлами и поправим один файл настроек.</p>
       <div class="two">
-        <div><h3>Что известно</h3><ul>
+        <div><h3>Что известно от организаторов</h3><ul>
           <li>Две таблицы Excel (упоминали и Word): ответы стажёров и ответы наставников за один период.</li>
           <li>5 стажёров, 5 наставников, 6 ежемесячных опросов. Один наставник на одного стажёра.</li>
           <li>Данные придуманные. У каждого стажёра и наставника свой уникальный ID, анкеты анонимные.</li>
@@ -265,24 +265,26 @@ footer{color:var(--muted);font-size:14px;padding:4px 8px 0}
           <li>Вопросы не меняются между месяцами.</li>
           <li>Нужно повторить анкету в Google Формах или похожем сервисе, чтобы ответы попадали в сервис, и сделать место, куда загружаются новые данные.</li>
         </ul></div>
-        <div><h3>Что узнаем только на финале</h3><ul>
-          <li>Названия колонок и точные формулировки вопросов.</li>
-          <li>Шкала оценок: 1–5, 1–10 или другая. Шкалы у сторон могут различаться.</li>
-          <li>Есть ли колонка с парой «стажёр и наставник» или пару определяет ID.</li>
-          <li>В каком виде указан месяц: дата, номер или название.</li>
-          <li>Есть ли текстовые комментарии и у какой стороны.</li>
+        <div><h3>Что мы предположили</h3><ul>
+          <li><b>Шкала:</b> от 1 до 10 у обеих сторон, максимум 10. Пустая ячейка означает «ответа нет», ноль не ставится.</li>
+          <li><b>Колонки:</b> «ID стажёра» или «ID наставника», «Дата ответа» (ГГГГ-ММ-ДД), по одной колонке на каждый вопрос с оценкой, колонка с комментарием.</li>
+          <li><b>Вопросы стажёра (4):</b> интересны ли задачи, понятны ли задачи, хватает ли поддержки наставника, хватает ли доступов и инструментов.</li>
+          <li><b>Вопросы наставника (3):</b> как стажёр справляется с задачами, насколько оперативно, насколько самостоятельно.</li>
+          <li><b>Пара:</b> стажёр С-03 и наставник Н-03 имеют одно число в ID. Если в данных есть колонка с парой, берём её.</li>
+          <li><b>Месяц:</b> один ответ на человека в месяц, месяц берётся из даты. Период: июнь–ноябрь 2026.</li>
+          <li><b>Комментарии:</b> есть у обеих сторон, необязательные.</li>
         </ul></div>
       </div>
       <h3 style="font:700 15px var(--font-head);margin:6px 0 0">Так выглядят две таблицы в нашем примере</h3>
-      <p class="note" style="margin:4px 0 0">Таблица 1. Ответы стажёров (шкала 1–5)</p><div class="dtw"><table class="dt"><tr><th>ID стажёра</th><th>Дата ответа</th><th>Насколько вам интересны задачи (1-5)</th><th>Насколько понятны задачи (1-5)</th><th>Получаете ли вы поддержку наставника (1-5)</th><th>Хватает ли доступов и инструментов (1-5)</th><th>Что мешает работать?</th></tr><tr><td>С-01</td><td>2026-06-18</td><td>5</td><td>4</td><td>5</td><td>5</td><td></td></tr><tr><td>С-01</td><td>2026-07-18</td><td>5</td><td>4</td><td>4</td><td>5</td><td></td></tr><tr><td>С-01</td><td>2026-08-18</td><td>4</td><td>4</td><td>5</td><td>5</td><td></td></tr></table></div>
+      <p class="note" style="margin:4px 0 0">Таблица 1. Ответы стажёров (шкала 1–10)</p><div class="dtw"><table class="dt"><tr><th>ID стажёра</th><th>Дата ответа</th><th>Насколько вам интересны задачи (1-10)</th><th>Насколько понятны задачи (1-10)</th><th>Получаете ли вы поддержку наставника (1-10)</th><th>Хватает ли доступов и инструментов (1-10)</th><th>Что мешает работать?</th></tr><tr><td>С-01</td><td>2026-06-18</td><td>10</td><td>8</td><td>10</td><td>10</td><td></td></tr><tr><td>С-01</td><td>2026-07-18</td><td>10</td><td>8</td><td>8</td><td>10</td><td></td></tr><tr><td>С-01</td><td>2026-08-18</td><td>8</td><td>8</td><td>10</td><td>10</td><td></td></tr></table></div>
       <p class="note" style="margin:0">Таблица 2. Ответы наставников (шкала 1–10)</p><div class="dtw"><table class="dt"><tr><th>ID наставника</th><th>Дата ответа</th><th>Как стажёр справляется с задачами (1-10)</th><th>Насколько оперативно (1-10)</th><th>Насколько самостоятельно (1-10)</th><th>Комментарий наставника</th></tr><tr><td>Н-01</td><td>2026-06-18</td><td>8</td><td>8</td><td>7</td><td></td></tr><tr><td>Н-01</td><td>2026-07-18</td><td>8</td><td>8</td><td>8</td><td></td></tr><tr><td>Н-01</td><td>2026-08-18</td><td>9</td><td>8</td><td>8</td><td></td></tr></table></div>
       <ul class="points">
         <li><span class="dot"><svg viewBox="0 0 24 24"><path d="M4 8h16M4 16h16M9 4l-4 4 4 4M15 12l4 4-4 4"/></svg></span><div><b>Пара по ID</b><span>Если колонки с парой нет, наставник Н-03 сопоставляется стажёру С-03 по числу в ID. Такие пары программа выводит в отчёт на проверку.</span></div></li>
-        <li><span class="dot"><svg viewBox="0 0 24 24"><path d="M3 20h18M6 16l4-5 3 3 5-8"/></svg></span><div><b>Одна шкала</b><span>Шкалы 1–5 и 1–10 приводятся к 1–10. Исходные значения остаются в базе и показываются в карточке как «4 из 5».</span></div></li>
+        <li><span class="dot"><svg viewBox="0 0 24 24"><path d="M3 20h18M6 16l4-5 3 3 5-8"/></svg></span><div><b>Если шкалы окажутся другими</b><span>Шкалы 1–5, 1–7 и любые другие приводятся к 1–10. Исходные значения остаются в базе.</span></div></li>
         <li><span class="dot"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></svg></span><div><b>Пропуск остаётся пропуском</b><span>Пустая ячейка не превращается в ноль. Повторная загрузка файла не создаёт дублей.</span></div></li>
         <li><span class="dot"><svg viewBox="0 0 24 24"><path d="M5 12l4 4 10-10"/></svg></span><div><b>Разные вопросы у сторон</b><span>Вопросы стажёра и наставника сравниваются по парам, которые мы задаём в одном файле. Вопросы без пары показываются отдельно.</span></div></li>
       </ul>
-      <p class="note">Готовые шаблоны двух таблиц и файл сопоставления колонок лежат в папке <code>prototype/mgts</code>. На финале мы смотрим выданные файлы командой <code>inspect_data.py</code>, правим названия колонок и загружаем данные. По плану это занимает 30–40 минут.</p>
+      <p class="note">Готовые шаблоны двух таблиц и файл сопоставления колонок лежат в папке <code>prototype/mgts</code>. На финале мы смотрим выданные файлы командой <code>inspect_data.py</code>, правим названия колонок и шкалу и загружаем данные. По плану это занимает 30–40 минут.</p>
     </section>
 
     <section id="solution" class="card">
@@ -341,17 +343,17 @@ footer{color:var(--muted);font-size:14px;padding:4px 8px 0}
 
     <section id="example" class="card c7" aria-labelledby="exh">
       <h2 id="exh">Пример: понятность задач у одного стажёра</h2>
-      <p class="sub">Выдуманные данные из макета. Вопросы у сторон разные, поэтому сравниваем пару: стажёр отвечает на «Насколько понятны задачи» (1–5), наставник на «Как стажёр справляется с задачами» (1–10). Обе шкалы приведены к 1–10.</p>
+      <p class="sub">Выдуманные данные из макета. Вопросы у сторон разные, поэтому сравниваем пару: стажёр отвечает на «Насколько понятны задачи», наставник на «Как стажёр справляется с задачами». Шкала 1–10 у обеих сторон.</p>
       <div class="legend"><span><i></i>Стажёр: понятные задачи</span><span><i class="m"></i>Наставник: справляется с задачами</span></div>
-      <svg id="chart" class="ch" viewBox="0 0 620 250" role="img" aria-label="Оценка наставника «Справляется с задачами» снижается с 9 до 4 из 10, оценка стажёра «Понятные задачи» остаётся 4 из 5"></svg>
-      <p class="note">С сентября наставник снижает оценку с 9 до 4 из 10, а стажёр по-прежнему ставит 4 из 5 и считает задачи понятными. Стороны видят ситуацию по-разному: это расхождение попадает в список для проверки.</p>
+      <svg id="chart" class="ch" viewBox="0 0 620 250" role="img" aria-label="Оценка наставника «Справляется с задачами» снижается с 9 до 4, оценка стажёра «Понятные задачи» остаётся 8"></svg>
+      <p class="note">С сентября наставник снижает оценку с 9 до 4, а стажёр по-прежнему ставит 8 и считает задачи понятными. Стороны видят ситуацию по-разному: это расхождение попадает в список для проверки.</p>
     </section>
 
     <section class="card c5" aria-labelledby="hh">
       <h2 id="hh">Пример: оценки наставников по месяцам</h2>
       <p class="sub">Вопрос «Как стажёр справляется с задачами» у пяти выдуманных наставников, из 10.</p>
       <div id="heat" class="heat" role="table" aria-label="Оценки стажёров по месяцам"></div>
-      <div class="hl"><span><i style="background:var(--g-bg);border:1px solid var(--g-bd)"></i>хорошо: от 70 % максимума (7–10 из 10)</span><span><i style="background:var(--m-bg);border:1px solid var(--m-bd)"></i>средне: больше 50 % (6)</span><span><i style="background:var(--r-bg);border:1px solid var(--r-bd)"></i>плохо: 50 % и ниже (5 и ниже)</span></div>
+      <div class="hl"><span><i style="background:var(--g-bg);border:1px solid var(--g-bd)"></i>хорошо: 8–10 из 10</span><span><i style="background:var(--m-bg);border:1px solid var(--m-bd)"></i>средне: 6–7</span><span><i style="background:var(--r-bg);border:1px solid var(--r-bd)"></i>плохо: 5 и ниже</span></div>
     </section>
 
     <section id="demo" class="card">
@@ -467,7 +469,7 @@ footer{color:var(--muted);font-size:14px;padding:4px 8px 0}
   })();
 
   // График: выдуманные данные из макета (стажёр 2, вопрос «Нагрузка и ресурсы»)
-  var M=['Июн','Июл','Авг','Сен','Окт','Ноя'],I=[10.0, 10.0, 7.75, 7.75, 7.75, 7.75],T=[9, 9, 8, 6, 5, 4];
+  var M=['Июн','Июл','Авг','Сен','Окт','Ноя'],I=[10, 10, 8, 8, 8, 8],T=[9, 9, 8, 6, 5, 4];
   var W=620,H=250,L=30,R=14,Tp=18,B=30,x=function(i){return L+(W-L-R)*i/5},y=function(v){return Tp+(H-Tp-B)*(10-v)/9};
   var s='<defs><linearGradient id="ln" x1="0" x2="1"><stop offset="0" stop-color="#008AE0"/><stop offset="1" stop-color="#7B61FF"/></linearGradient>'+
         '<linearGradient id="ar" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#7B61FF" stop-opacity=".35"/><stop offset="1" stop-color="#008AE0" stop-opacity="0"/></linearGradient></defs>';
@@ -480,8 +482,8 @@ footer{color:var(--muted);font-size:14px;padding:4px 8px 0}
   I.forEach(function(v,i){s+='<circle cx="'+x(i)+'" cy="'+y(v)+'" r="'+(i===5?6:4)+'" fill="'+(i===5?'#7B61FF':'var(--bg)')+'" stroke="#7B61FF" stroke-width="2.5"/>';});
   // подсказка у последней точки, как на референсе
   s+='<line x1="'+x(5)+'" x2="'+x(5)+'" y1="'+Tp+'" y2="'+(H-B)+'" stroke="currentColor" stroke-opacity=".3" stroke-dasharray="3 4"/>';
-  s+='<g transform="translate('+(x(5)-226)+','+(y(6.2))+')"><rect width="214" height="50" rx="12" fill="var(--card-hi)" stroke="currentColor" stroke-opacity=".18"/>'+
-     '<text x="12" y="20" style="fill:var(--ink);font-weight:700">Ноя</text><text x="12" y="38">Стажёр 4 из 5 · Наставник 4 из 10</text></g>';
+  s+='<g transform="translate('+(x(5)-162)+','+(y(6.2))+')"><rect width="150" height="50" rx="12" fill="var(--card-hi)" stroke="currentColor" stroke-opacity=".18"/>'+
+     '<text x="12" y="20" style="fill:var(--ink);font-weight:700">Ноя</text><text x="12" y="38">Стажёр 8 · Наставник 4</text></g>';
   var c=document.getElementById('chart');c.style.color='var(--ink)';c.innerHTML=s;
 
   // Тепловая карта: выдуманные оценки пяти стажёров по вопросу «Нагрузка и ресурсы»
@@ -489,7 +491,7 @@ footer{color:var(--muted);font-size:14px;padding:4px 8px 0}
   var h='<span></span>'+M.map(function(m){return'<span class="h">'+m+'</span>'}).join('');
   P.forEach(function(p){h+='<span class="n">'+p[0]+'</span>'+p[1].map(function(v){
     if(v===null)return'<span class="c gap">нет</span>';
-    var k=v/10>=.7?' good':v/10>.5?' mid':' low';
+    var k=v>=8?' good':v>=6?' mid':' low';
     return'<span class="c'+k+'">'+v+'/10</span>';}).join('');});
   document.getElementById('heat').innerHTML=h;
 

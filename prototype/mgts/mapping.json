@@ -6,10 +6,10 @@
       "columns": {"person": "ID стажёра", "timestamp": "Дата ответа"},
       "period": {"column": "Дата ответа", "from_date": {"start": "2026-06-01"}, "default": "last"},
       "scores": [
-        {"column": "Насколько вам интересны задачи (1-5)", "dimension": "interest", "scale": [1, 5]},
-        {"column": "Насколько понятны задачи (1-5)", "dimension": "clarity", "scale": [1, 5]},
-        {"column": "Получаете ли вы поддержку наставника (1-5)", "dimension": "support", "scale": [1, 5]},
-        {"column": "Хватает ли доступов и инструментов (1-5)", "dimension": "access", "scale": [1, 5]}
+        {"column": "Насколько вам интересны задачи (1-10)", "dimension": "interest"},
+        {"column": "Насколько понятны задачи (1-10)", "dimension": "clarity"},
+        {"column": "Получаете ли вы поддержку наставника (1-10)", "dimension": "support"},
+        {"column": "Хватает ли доступов и инструментов (1-10)", "dimension": "access"}
       ],
       "comments": ["Что мешает работать?"]
     },
