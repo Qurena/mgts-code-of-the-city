@@ -72,7 +72,7 @@ Restart=always
 WantedBy=multi-user.target
 EOF
 
-# nginx: на / открывается дашборд и приём ответов (приёмник на 8765), старый интерфейс Streamlit с загрузкой файлов на /app/
+# nginx: на / открывается сайт команды, на /dashboard-prototype.html живой дашборд, плюс приём ответов (приёмник на 8765), старый интерфейс Streamlit с загрузкой файлов на /app/
 cat > /etc/nginx/sites-available/mgts <<EOF
 server {
     listen 80 default_server;
@@ -122,5 +122,5 @@ fi
 
 echo
 echo "Готово. Службы: $(systemctl is-active mgts-receiver) / $(systemctl is-active mgts-app)"
-echo "Дашборд:    http://${DOMAIN:-<IP сервера>}/   (загрузка файлов: /app/)"
+echo "Сайт:       http://${DOMAIN:-<IP сервера>}/   дашборд: /dashboard-prototype.html   загрузка файлов: /app/"
 echo "Приёмник:   POST http://${DOMAIN:-<IP сервера>}/response  (заголовок x-token из /etc/mgts/env)"

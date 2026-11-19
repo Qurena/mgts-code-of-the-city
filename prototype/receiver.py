@@ -3,7 +3,7 @@
   POST /form/<имя>     сырой ответ формы (Google Forms, Яндекс Формы): колонки сопоставляются по mapping.json, источник с таким именем
   GET  /health
   GET  /api/dashboard  данные живого дашборда (dashboard_api.py); POST /api/status и /api/action пишут статус сигнала и действие HR
-  GET  /, /index.html, /dashboard-prototype.html  статические страницы из STATIC_DIR (по умолчанию ../docs): красивый дашборд открывается на этом же адресе
+  GET  /, /index.html  сайт команды; GET /dashboard-prototype.html  живой дашборд (страницы из STATIC_DIR, по умолчанию ../docs)
 Подтверждает получение сразу, без ожидания разбора текста моделью. Заголовок x-delivery-id сохраняется для повторных доставок.
 Если задана WEBHOOK_TOKEN, нужен заголовок x-token (или параметр ?token=, для сервисов, которые не умеют заголовки).
 Каждое тело запроса пишется в таблицу inbox: по ней видно настоящий формат присланных данных.
@@ -22,7 +22,7 @@ import ingest_tools as it
 
 TOKEN = os.environ.get("WEBHOOK_TOKEN")
 STATIC_DIR = Path(os.environ.get("STATIC_DIR", Path(__file__).resolve().parent.parent / "docs"))
-PAGES = {"/": "dashboard-prototype.html", "/index.html": "index.html", "/dashboard-prototype.html": "dashboard-prototype.html"}
+PAGES = {"/": "index.html", "/index.html": "index.html", "/dashboard-prototype.html": "dashboard-prototype.html"}
 
 
 def load_mapping() -> dict:
