@@ -8,6 +8,7 @@
   --side:rgba(255,255,255,.03); --card:rgba(255,255,255,.045); --card-hi:rgba(255,255,255,.075); --line:rgba(255,255,255,.09);
   --ink:#F2F5FA; --muted:#A3AEC2; --blue:#008AE0; --violet:#7B61FF; --blue-text:#5CC0FF; --on-grad:#FFFFFF;
   --warn:#FAC031; --hot:#FF8A5C; --ok:#4BDB7A;
+  --g-bg:rgba(75,219,122,.22); --g-bd:#4BDB7A; --m-bg:rgba(255,238,160,.20); --m-bd:#F3DE7A; --r-bg:rgba(255,90,90,.26); --r-bd:#FF6B6B; --r-tx:#FFB3B3;
   --grad:linear-gradient(135deg,#0068AD 0%,#5B3FD9 100%);
   --font-head:'MTS Wide','Segoe UI',system-ui,sans-serif; --font-body:'MTS Compact','Segoe UI',system-ui,sans-serif;
   color-scheme:dark;
@@ -15,11 +16,11 @@
 @media (prefers-color-scheme: light){:root:not([data-theme="dark"]){
   --bg:#EEF1F8; --glow-a:rgba(0,138,224,.16); --glow-b:rgba(123,97,255,.14);
   --side:rgba(255,255,255,.7); --card:rgba(255,255,255,.82); --card-hi:#FFFFFF; --line:rgba(29,32,35,.10);
-  --ink:#1D2023; --muted:#566074; --blue-text:#0072BD; --warn:#8A6100; --hot:#B8400F; --ok:#14783A; color-scheme:light}}
+  --ink:#1D2023; --muted:#566074; --blue-text:#0072BD; --warn:#8A6100; --hot:#B8400F; --ok:#14783A; --g-bg:#CFF0DA; --g-bd:#14783A; --m-bg:#FFF6C4; --m-bd:#C9A800; --r-bg:#FFD6D6; --r-bd:#C62828; --r-tx:#8F1D1D; color-scheme:light}}
 :root[data-theme="light"]{
   --bg:#EEF1F8; --glow-a:rgba(0,138,224,.16); --glow-b:rgba(123,97,255,.14);
   --side:rgba(255,255,255,.7); --card:rgba(255,255,255,.82); --card-hi:#FFFFFF; --line:rgba(29,32,35,.10);
-  --ink:#1D2023; --muted:#566074; --blue-text:#0072BD; --warn:#8A6100; --hot:#B8400F; --ok:#14783A; color-scheme:light}
+  --ink:#1D2023; --muted:#566074; --blue-text:#0072BD; --warn:#8A6100; --hot:#B8400F; --ok:#14783A; --g-bg:#CFF0DA; --g-bd:#14783A; --m-bg:#FFF6C4; --m-bd:#C9A800; --r-bg:#FFD6D6; --r-bd:#C62828; --r-tx:#8F1D1D; color-scheme:light}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth;scroll-padding-top:16px}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
@@ -109,7 +110,10 @@ svg.ch text{fill:var(--muted);font:12px var(--font-body)}
 .heat .h{color:var(--muted);text-align:center}
 .heat .n{color:var(--ink);padding-right:8px;white-space:nowrap}
 .heat .c{height:42px;border-radius:9px;display:grid;place-items:center;font:700 13px var(--font-head);font-variant-numeric:tabular-nums;border:1px solid transparent}
-.heat .c.low{border-color:var(--hot);color:var(--hot)}
+.heat .c{color:var(--ink)}
+.heat .c.good{background:var(--g-bg);border-color:var(--g-bd)}
+.heat .c.mid{background:var(--m-bg);border-color:var(--m-bd)}
+.heat .c.low{background:var(--r-bg);border-color:var(--r-bd);color:var(--r-tx)}
 .heat .c.gap{background:transparent;border:1px dashed var(--line);color:var(--muted);font-weight:500}
 .hl{display:flex;flex-wrap:wrap;gap:14px;margin-top:14px;color:var(--muted);font-size:13px}
 .hl i{display:inline-block;width:12px;height:12px;border-radius:4px;vertical-align:-1px;margin-right:6px}
@@ -144,6 +148,18 @@ svg.ch text{fill:var(--muted);font:12px var(--font-body)}
 .archleg i{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--ok);margin-right:6px}
 .archleg i.net{background:var(--warn)}
 @media (max-width:960px){.arch{grid-template-columns:minmax(0,1fr);gap:6px}.arch .ar{transform:rotate(90deg);height:22px}}
+/* интервью */
+.iv{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:8px}
+.iv article{padding:18px;border-radius:18px;background:var(--card-hi);border:1px solid var(--line)}
+.iv h3{font:700 17px var(--font-head);margin:0 0 4px}
+.iv .meta{color:var(--muted);font-size:13px;margin:0 0 12px}
+.iv ul{margin:0;padding-left:18px;font-size:15px}
+.iv li{margin:0 0 8px}
+.iv blockquote{margin:14px 0 0;padding:10px 14px;border-left:3px solid var(--blue-text);color:var(--muted);font-size:14px}
+.ivc{margin-top:16px;padding:16px 18px;border-radius:18px;border:1px dashed var(--line)}
+.ivc b{font-family:var(--font-head)}
+.ivc ul{margin:8px 0 0;padding-left:18px;font-size:15px}
+@media (max-width:960px){.iv{grid-template-columns:minmax(0,1fr)}}
 /* команда */
 .team{margin:0;padding:0;list-style:none;display:grid}
 .team li{display:grid;grid-template-columns:44px minmax(0,1.2fr) minmax(0,2fr);gap:14px;align-items:center;padding:14px 4px;border-top:1px solid var(--line)}
@@ -173,6 +189,7 @@ footer{color:var(--muted);font-size:14px;padding:4px 8px 0}
     <a href="#architecture"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="6" height="5" rx="1.5"/><rect x="15" y="4" width="6" height="5" rx="1.5"/><rect x="9" y="15" width="6" height="5" rx="1.5"/><path d="M6 9v3h12V9M12 12v3"/></svg><span>Схема</span></a>
     <a href="#example"><svg viewBox="0 0 24 24"><path d="M3 20h18M6 16l4-5 3 3 5-8"/></svg><span>Пример</span></a>
     <a href="#demo"><svg viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z"/></svg><span>Защита</span></a>
+    <a href="#interviews"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></svg><span>Интервью</span></a>
     <a href="#team"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6M16 5a3.5 3.5 0 010 6.5M18 14.5c2 .7 3.5 2.6 3.5 5.5"/></svg><span>Команда</span></a>
   </nav>
   <div class="promo"><b>Макет дашборда</b><p>Три экрана на выдуманных данных.</p><a class="btn" href="dashboard-prototype.html">Открыть макет</a></div>
@@ -292,7 +309,7 @@ footer{color:var(--muted);font-size:14px;padding:4px 8px 0}
       <h2 id="hh">Пример: оценки стажёров по месяцам</h2>
       <p class="sub">Тот же вопрос у пяти выдуманных стажёров.</p>
       <div id="heat" class="heat" role="table" aria-label="Оценки стажёров по месяцам"></div>
-      <div class="hl"><span><i style="background:rgba(0,138,224,.85)"></i>выше оценка</span><span><i style="border:1px solid var(--hot)"></i>4 и ниже</span><span><i style="border:1px dashed var(--muted)"></i>ответа нет</span></div>
+      <div class="hl"><span><i style="background:var(--g-bg);border:1px solid var(--g-bd)"></i>хорошо: 7–8 из 8</span><span><i style="background:var(--m-bg);border:1px solid var(--m-bd)"></i>средне: 5–6</span><span><i style="background:var(--r-bg);border:1px solid var(--r-bd)"></i>плохо: 4 и ниже</span><span><i style="border:1px dashed var(--muted)"></i>ответа нет</span></div>
     </section>
 
     <section id="demo" class="card">
@@ -307,15 +324,54 @@ footer{color:var(--muted);font-size:14px;padding:4px 8px 0}
       </ul>
     </section>
 
+    <section id="interviews" class="card" aria-labelledby="ivh">
+      <h2 id="ivh">Мы проверили задачу в интервью<span class="tag">2 интервью</span></h2>
+      <p class="sub">Дарья Йылдыз лично провела два интервью с людьми, которые знают стажировки изнутри. Имена собеседников не публикуем.</p>
+      <div class="iv">
+        <article>
+          <h3>Интервью 1: опыт стажировок</h3>
+          <p class="meta">18 ноября 2026 · провела Дарья Йылдыз</p>
+          <ul>
+            <li>Стажёру не хватает контекста: сроки, согласования и ресурсы оказываются сложнее, чем казалось.</li>
+            <li>Успешная стажировка не гарантирует работу: при заморозке найма мест может не быть.</li>
+            <li>Регулярные личные встречи с руководителем полезнее анкет. Анкеты часто заполняют формально.</li>
+            <li>Обратная связь нужна только если после неё что-то меняется.</li>
+            <li>Дашборд сам не сделает отзывы содержательными. Людям важно знать, кто видит данные и как их используют.</li>
+          </ul>
+          <blockquote>Дашборд будет полезен, если люди готовы оставлять содержательные отзывы, доверяют правилам работы с данными, а оценки достоверны и приводят к действиям.</blockquote>
+        </article>
+        <article>
+          <h3>Интервью 2: программа минисео</h3>
+          <p class="meta">Участник лидерской программы, продуктовая команда · провела Дарья Йылдыз</p>
+          <ul>
+            <li>Любые сложности обсуждаются: проблемы сразу выносят в общий чат, раз в две недели проходит ретроспектива с анонимными претензиями.</li>
+            <li>Помогает еженедельная встреча с наставником и руководителем. Анкет нет, обратную связь спрашивают вживую.</li>
+            <li>Мнения с наставником расходятся часто. Решают аргументами, цифрами и метриками.</li>
+            <li>Первым в дашборде хотел бы видеть настроение руководителей по отношению к нему.</li>
+            <li>Объективным показателям можно верить, оценки на субъективных мнениях нужно проверять человеком.</li>
+          </ul>
+          <blockquote>На дашборды надо смотреть скептически: всегда нужно понимать, как считается метрика и откуда она взята.</blockquote>
+        </article>
+      </div>
+      <div class="ivc">
+        <b>Что мы учли в решении</b>
+        <ul>
+          <li>Оба собеседника ценят живой разговор больше анкет. Поэтому дашборд не заменяет встречу, а подсказывает HR, с кем стоит поговорить.</li>
+          <li>Оба просят понятных правил. Поэтому у каждого сигнала видны исходный комментарий и правило расчёта, а закрытые комментарии стажёров наставник не видит.</li>
+          <li>Сигналы считаются по простым правилам, без ИИ, поэтому результат можно проверить вручную.</li>
+        </ul>
+      </div>
+    </section>
+
     <section id="team" class="card">
       <h2>Команда</h2>
       <p class="sub">Студенты МФТИ и Сколково.</p>
       <ul class="team">
-        <li><span class="av">СК</span><div><b>Степан Культяков</b></div><div class="r">Руководитель команды, постановка задачи<span class="bio" data-bio="stepan"></span></div></li>
-        <li><span class="av">АД</span><div><b>Андрей Деев</b></div><div class="r">План работы, экономика решения<span class="bio" data-bio="andrey"></span></div></li>
-        <li><span class="av">ДЙ</span><div><b>Дарья Йылдыз</b></div><div class="r">Структура данных, правила сигналов<span class="bio" data-bio="dasha"></span></div></li>
-        <li><span class="av">ГЗ</span><div><b>Глеб Злобин</b></div><div class="r">Текст заявки, подготовка защиты<span class="bio" data-bio="gleb"></span></div></li>
-        <li><span class="av">МБ</span><div><b>Михаил Бруевич</b></div><div class="r">Дизайн дашборда, запуск программы<span class="bio" data-bio="misha"></span></div></li>
+        <li><span class="av">СК</span><div><b>Степан Культяков</b></div><div class="r">Лидер команды, координирует работу и сроки: за его плечами руководство съёмочной командой из 20 человек.<span class="bio" data-bio="stepan"></span></div></li>
+        <li><span class="av">АД</span><div><b>Андрей Деев</b></div><div class="r">Основатель двух стартапов, думает над продуктовой стратегией и CJM.<span class="bio" data-bio="andrey"></span></div></li>
+        <li><span class="av">ДЙ</span><div><b>Дарья Йылдыз</b></div><div class="r">Применяет опыт работы с данными в аналитике и поиске паттернов.<span class="bio" data-bio="dasha"></span></div></li>
+        <li><span class="av">ГЗ</span><div><b>Глеб Злобин</b></div><div class="r">Исследует employee silence, готовит питч и тексты.<span class="bio" data-bio="gleb"></span></div></li>
+        <li><span class="av">МБ</span><div><b>Михаил Бруевич</b></div><div class="r">Отвечает за разработку и дизайн, опираясь на опыт участия в кейс-чемпионатах.<span class="bio" data-bio="misha"></span></div></li>
       </ul>
       <!-- РЕГАЛИИ: впишите по одной строке в span.bio каждого участника (опыт, стек, достижения). Пустые блоки скрыты. -->
     </section>
@@ -391,8 +447,8 @@ footer{color:var(--muted);font-size:14px;padding:4px 8px 0}
   var h='<span></span>'+M.map(function(m){return'<span class="h">'+m+'</span>'}).join('');
   P.forEach(function(p){h+='<span class="n">'+p[0]+'</span>'+p[1].map(function(v){
     if(v===null)return'<span class="c gap">нет</span>';
-    var a=(0.18+v*0.075).toFixed(2);
-    return'<span class="c'+(v<=4?' low':'')+'" style="background:rgba(0,138,224,'+a+')">'+v+'</span>';}).join('');});
+    var k=v>=7?' good':v>=5?' mid':' low';
+    return'<span class="c'+k+'">'+v+'/8</span>';}).join('');});
   document.getElementById('heat').innerHTML=h;
 
   // Анимация появления при прокрутке: блоки выезжают снизу и с боков, элементы списков идут по очереди
