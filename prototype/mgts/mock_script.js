@@ -1,4 +1,7 @@
-const WAVES=DATA.waves,NW=WAVES.length,DIMS=DATA.dims,ITEMS=DATA.items,D=DATA.people,C=DATA.comments,SIG=DATA.signals,INFO=DATA.info;
+// DATA: встроенный пример (GitHub Pages). На сервере страница сама берёт живые данные из /api/dashboard каждые 5 секунд.
+let WAVES,NW,DIMS,ITEMS,D,C,SIG,INFO,LIVE=false;
+function setData(d){DATA=d;WAVES=d.waves;NW=WAVES.length;DIMS=d.dims;ITEMS=d.items;D=d.people;C=d.comments;SIG=d.signals;INFO=d.info}
+setData(DATA);
 const N=null;
 const st={role:'hr',tab:'overview',item:ITEMS[0].id,intern:'',mentor:'',status:{},log:{},showClosed:false};
 // Демо хранит статусы и действия только в этом браузере (localStorage). Серверного хранения в публичном макете нет.
@@ -7,6 +10,7 @@ try{const s=JSON.parse(localStorage.getItem(KEY)||'{}');if(s.status)st.status=s.
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify({status:st.status,log:st.log}))}catch(e){}};
 const $=s=>document.querySelector(s),esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const U=id=>D.find(x=>x.id===id),IT=id=>ITEMS.find(x=>x.id===id);
+const post=(url,body)=>fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).then(r=>r.json());
 // Допущение: шкала 1–10 у обеих сторон. Если на финале шкалы разные, загрузчик приводит их к 1–10 (norm).
 const norm=(v,mx)=>v===N?N:1+(v-1)*9/(mx-1);
 const chip=v=>v===N?'<span class="sc no">нет</span>':`<span class="sc ${v>=8?'hi':v>=6?'mid':'lo'}">${v}</span>`;
@@ -43,7 +47,7 @@ function overview(){
   return `<div class="grid g3">
    <div class="card kpi"><div class="l">Ответили в волне «${WAVES[last]}»</div><div class="v num">${n+nm} из ${D.length*2}</div><div class="s">стажёры ${n}/${D.length} · наставники ${nm}/${D.length}</div></div>
    <div class="card kpi"><div class="l">Требуют внимания</div><div class="v num">${o.length}</div><div class="s">${o.filter(s=>s.type==='content').length} содержательных · ${o.filter(s=>['change','divergence','low'].includes(s.type)).length} по динамике · ${o.filter(s=>s.type==='data').length} по данным</div></div>
-   <div class="card kpi"><div class="l">Последнее обновление</div><div class="v num">17.11 14:05</div><div class="s">новый ответ из внешней формы · пример</div></div>
+   <div class="card kpi"><div class="l">${LIVE?'Последний ответ получен':'Последнее обновление'}</div><div class="v num">${LIVE?esc(DATA.updated||'—'):'17.11 14:05'}</div><div class="s">${LIVE?'время UTC · страница обновляется сама каждые 5 секунд':'новый ответ из внешней формы · пример'}</div></div>
   </div>
   <div class="grid g2" style="margin-top:16px">
    <div class="card"><div class="head"><h2>Динамика по волнам</h2><div class="ctrl">${itemSel()}</div></div>${legend(it)}
@@ -57,7 +61,7 @@ function overview(){
    <details class="card"><summary style="cursor:pointer;font-weight:700">Каталог сигналов: когда срабатывает и что делает HR</summary>
     <p style="color:var(--muted);font-size:13px;margin:8px 0">Расчёт по простым правилам, без ИИ. Пороги (шкала 1–10): падение ${DATA.thr.drop}, расхождение ${DATA.thr.divergence}, низкая оценка не выше ${DATA.thr.low} ${DATA.thr.low_months} месяца подряд.</p>
     <div class="list">${Object.values(INFO).map(s=>`<div class="row"><div><div class="t">${esc(s.name)}</div><div class="m"><b>Когда:</b> ${esc(s.rule)}</div><div class="m"><b>Почему важно:</b> ${esc(s.why)}</div><div class="m"><b>Что делает HR:</b> ${esc(s.action)}</div></div></div>`).join('')}</div></details>
-   <details class="card"><summary style="cursor:pointer;font-weight:700">Какие данные загружаем: две таблицы Excel</summary>${dataBlock()}</details>
+   ${DATA.sample?`<details class="card"><summary style="cursor:pointer;font-weight:700">Какие данные загружаем: две таблицы Excel</summary>${dataBlock()}</details>`:`<div class="card"><h2>Новые данные</h2><p style="color:var(--muted);font-size:13px;margin:4px 0 8px">Ответ из формы приходит на приёмник и появляется здесь сам. Файл Excel или ссылку на таблицу можно загрузить в интерфейсе загрузки.</p><a class="btn" href="/app/" style="display:inline-block;text-decoration:none">Загрузить данные</a></div>`}
   </div>`;
 }
 function dataBlock(){
@@ -104,10 +108,10 @@ function render(){
   else v.innerHTML=st.tab==='overview'?overview():st.tab==='queue'?queue():card(st.intern,false);
   const ds=$('#itemSel');if(ds)ds.onchange=e=>{st.item=e.target.value;render()};
   const sc2=$('#showClosed');if(sc2)sc2.onchange=e=>{st.showClosed=e.target.checked;render();const c=$('#showClosed');if(c)c.focus()};
-  v.querySelectorAll('[data-st]').forEach(s=>s.onchange=e=>{st.status[s.dataset.st]=e.target.value;save();render()});
+  v.querySelectorAll('[data-st]').forEach(s=>s.onchange=e=>{st.status[s.dataset.st]=e.target.value;if(LIVE)post('/api/status',{key:s.dataset.st,status:e.target.value});else save();render()});
   v.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>{st.intern=b.dataset.open;st.tab='intern';location.hash='intern/'+st.intern});
   const bk=$('#back');if(bk)bk.onclick=()=>{st.tab='queue';location.hash='queue'};
-  const f=$('#actForm');if(f)f.onsubmit=e=>{e.preventDefault();const btn=f.querySelector('button');if(btn.disabled)return;btn.disabled=true;(st.log[st.intern]=st.log[st.intern]||[]).push({owner:$('#actOwner').value,due:$('#actDue').value,note:$('#actNote').value});save();render()};
+  const f=$('#actForm');if(f)f.onsubmit=e=>{e.preventDefault();const btn=f.querySelector('button');if(btn.disabled)return;btn.disabled=true;const a={owner:$('#actOwner').value,due:$('#actDue').value,note:$('#actNote').value};(st.log[st.intern]=st.log[st.intern]||[]).push(a);if(LIVE)post('/api/action',{intern:st.intern,...a});else save();render()};
 }
 $('#tabs').onclick=e=>{const b=e.target.closest('[data-tab]');if(!b)return;st.tab=b.dataset.tab;location.hash=st.tab==='intern'?'intern/'+st.intern:st.tab;render()};
 $('#tabs').onkeydown=e=>{
@@ -126,3 +130,15 @@ function fromHash(){const m=decodeURIComponent(location.hash.slice(1)).split('/'
   if(h==='hr')st.role='hr'}
 window.addEventListener('hashchange',()=>{fromHash();render()});
 st.intern=D[1].id;st.mentor=D[0].id;fromHash();render();
+// Живой режим: если рядом есть /api/dashboard (страница открыта с сервера), данные берутся оттуда и обновляются без перезагрузки
+let lastJson='';
+function apply(d){
+  const j=JSON.stringify(d);if(j===lastJson)return;lastJson=j;
+  setData(d);LIVE=true;st.status=d.statuses||{};st.log=d.actions||{};
+  if(!IT(st.item))st.item=ITEMS[0].id;if(!U(st.intern))st.intern=D[0].id;if(!U(st.mentor))st.mentor=D[0].id;
+  const up=$('#upl');if(up)up.hidden=false;
+  const a=document.activeElement;if(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)&&a.id!=='itemSel')return; // не стираем то, что человек сейчас вводит
+  render();
+}
+function poll(){fetch('/api/dashboard',{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject()).then(apply).catch(()=>{})}
+if(/^https?:$/.test(location.protocol)&&!/github\.io$/.test(location.hostname)){poll();setInterval(poll,5000)}

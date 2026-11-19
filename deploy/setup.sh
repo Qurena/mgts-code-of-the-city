@@ -33,6 +33,7 @@ if [ ! -f /etc/mgts/env ]; then
 PULSE_DB=/var/lib/mgts/pulse.db
 SURVEY_CONFIG=$APP_DIR/repo/prototype/mgts/survey.json
 MAPPING_FILE=$APP_DIR/repo/prototype/mgts/mapping.json
+STATIC_DIR=$APP_DIR/repo/docs
 WEBHOOK_TOKEN=$(head -c 24 /dev/urandom | base64 | tr -d '/+=')
 RECEIVER_URL=http://127.0.0.1:8765
 ANALYZER=keywords
@@ -40,6 +41,8 @@ EOF
   chmod 640 /etc/mgts/env
   chgrp "$APP_USER" /etc/mgts/env
 fi
+
+grep -q "^STATIC_DIR=" /etc/mgts/env || echo "STATIC_DIR=$APP_DIR/repo/docs" >> /etc/mgts/env
 
 cat > /etc/systemd/system/mgts-receiver.service <<EOF
 [Unit]
@@ -63,33 +66,32 @@ After=network.target
 User=$APP_USER
 WorkingDirectory=$APP_DIR/repo/prototype
 EnvironmentFile=/etc/mgts/env
-ExecStart=$APP_DIR/venv/bin/streamlit run app.py --server.headless true --server.address 127.0.0.1 --server.port 8501 --server.enableXsrfProtection true
+ExecStart=$APP_DIR/venv/bin/streamlit run app.py --server.headless true --server.address 127.0.0.1 --server.port 8501 --server.baseUrlPath app --server.enableXsrfProtection true
 Restart=always
 [Install]
 WantedBy=multi-user.target
 EOF
 
-# nginx: интерфейс на /, приём ответов на /response (IPv4 и IPv6)
+# nginx: на / открывается дашборд и приём ответов (приёмник на 8765), старый интерфейс Streamlit с загрузкой файлов на /app/
 cat > /etc/nginx/sites-available/mgts <<EOF
 server {
     listen 80 default_server;
     listen [::]:80 default_server;
     server_name ${DOMAIN:-_};
+    client_max_body_size 64k;
 
-    location /response {
-        proxy_pass http://127.0.0.1:8765;
-        proxy_set_header Host \$host;
-        proxy_set_header x-delivery-id \$http_x_delivery_id;
-        proxy_set_header x-token \$http_x_token;
-        client_max_body_size 64k;
-    }
-    location / {
+    location = /app { return 301 /app/; }
+    location /app/ {
         proxy_pass http://127.0.0.1:8501;
         proxy_http_version 1.1;
         proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection "upgrade";
         proxy_set_header Host \$host;
         proxy_read_timeout 86400;
+    }
+    location / {
+        proxy_pass http://127.0.0.1:8765;
+        proxy_set_header Host \$host;
     }
 }
 EOF
@@ -120,5 +122,5 @@ fi
 
 echo
 echo "Готово. Службы: $(systemctl is-active mgts-receiver) / $(systemctl is-active mgts-app)"
-echo "Интерфейс:  http://${DOMAIN:-<IP сервера>}/"
+echo "Дашборд:    http://${DOMAIN:-<IP сервера>}/   (загрузка файлов: /app/)"
 echo "Приёмник:   POST http://${DOMAIN:-<IP сервера>}/response  (заголовок x-token из /etc/mgts/env)"

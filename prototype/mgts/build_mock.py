@@ -65,7 +65,7 @@ def sample(side, n=6):
 DATA = {"waves": [x[:3] for x in cfg["periods"]], "dims": dims, "items": [{"id": i["id"], "label": i["label"], "i": i["intern"], "m": i["mentor"]} for i in core.ITEMS],
         "people": people, "comments": comments, "signals": signals, "info": list(core.SIGNAL_INFO.values()),
         "thr": core.get_thresholds(con), "sample": {"i": sample("intern"), "m": sample("mentor")}}
-html = (HERE / "mock_head.html").read_text(encoding="utf-8") + "\n<script>\nconst DATA=" + json.dumps(DATA, ensure_ascii=False, default=str) + ";\n" + (HERE / "mock_script.js").read_text(encoding="utf-8") + "</script>\n"
+html = (HERE / "mock_head.html").read_text(encoding="utf-8") + "\n<script>\nlet DATA=" + json.dumps(DATA, ensure_ascii=False, default=str) + ";\n" + (HERE / "mock_script.js").read_text(encoding="utf-8") + "</script>\n"
 WRAP = '<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><style>html{-webkit-text-size-adjust:100%}body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>'
 for out, pre in [(ROOT / "site/dashboard-prototype.html", ""), (ROOT / "publish/docs/dashboard-prototype.html", WRAP)]:
     out.write_text(pre + html, encoding="utf-8", newline="")
