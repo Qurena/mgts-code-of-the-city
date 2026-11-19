@@ -31,6 +31,8 @@ chown "$APP_USER":"$APP_USER" /var/lib/mgts
 if [ ! -f /etc/mgts/env ]; then
   cat > /etc/mgts/env <<EOF
 PULSE_DB=/var/lib/mgts/pulse.db
+SURVEY_CONFIG=$APP_DIR/repo/prototype/mgts/survey.json
+MAPPING_FILE=$APP_DIR/repo/prototype/mgts/mapping.json
 WEBHOOK_TOKEN=$(head -c 24 /dev/urandom | base64 | tr -d '/+=')
 RECEIVER_URL=http://127.0.0.1:8765
 ANALYZER=keywords
@@ -95,9 +97,9 @@ ln -sf /etc/nginx/sites-available/mgts /etc/nginx/sites-enabled/mgts
 rm -f /etc/nginx/sites-enabled/default
 nginx -t
 
-# данные демо: создаются один раз, под пользователем службы
+# данные: пример в формате вебинара (две таблицы Excel из prototype/mgts/data) загружается один раз
 if [ ! -f /var/lib/mgts/pulse.db ]; then
-  sudo -u "$APP_USER" env PULSE_DB=/var/lib/mgts/pulse.db "$APP_DIR/venv/bin/python" "$APP_DIR/repo/prototype/seed.py"
+  (cd "$APP_DIR/repo/prototype" && sudo -u "$APP_USER" env PULSE_DB=/var/lib/mgts/pulse.db SURVEY_CONFIG="$APP_DIR/repo/prototype/mgts/survey.json" MAPPING_FILE="$APP_DIR/repo/prototype/mgts/mapping.json" "$APP_DIR/venv/bin/python" import_data.py mgts/mapping.json)
 fi
 
 systemctl daemon-reload
